@@ -8,7 +8,6 @@ import javafx.scene.layout.VBox
 import javafx.scene.paint.*
 import javafx.scene.shape.Rectangle
 import javafx.scene.text.TextAlignment
-import wikimap.app.Styles
 import tornadofx.*
 import wikimap.models.MindMapModel
 import wikimap.models.MindMapNode
