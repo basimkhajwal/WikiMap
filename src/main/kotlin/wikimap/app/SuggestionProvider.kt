@@ -1,5 +1,5 @@
 package wikimap.app
 
 interface SuggestionProvider{
-    fun get()
+    fun getSuggestions(key: String): List<String>
 }
