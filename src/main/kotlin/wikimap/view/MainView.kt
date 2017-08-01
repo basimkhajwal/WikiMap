@@ -1,13 +1,19 @@
 package wikimap.view
 
+import com.sun.prism.Image
+import javafx.geometry.Bounds
 import javafx.geometry.Pos
 import javafx.geometry.Rectangle2D
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
+import javafx.scene.control.Label
+import javafx.scene.layout.Pane
+import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.*
 import javafx.scene.shape.Rectangle
 import javafx.scene.text.TextAlignment
+import org.w3c.dom.css.Rect
 import tornadofx.*
 import wikimap.models.MindMapModel
 import wikimap.models.MindMapNode
@@ -22,12 +28,60 @@ class MainView : View("WikiMap") {
 
     val gridSpacing: Int = 20
 
+    private fun fromGridCoords(x: Double, y: Double): Pair<Double, Double> {
+        return Pair(x*gridSpacing + canvas.width/2, y*gridSpacing + canvas.height/2)
+    }
+
+    private fun toGridCoords(x: Double, y: Double): Pair<Double, Double> {
+        return Pair((x - canvas.width/2) / gridSpacing, (y - canvas.height/2) / gridSpacing)
+    }
+
     /* Fixed for now, but can be changed later */
     val mindMap = MindMapModel(
-        MindMapNode("Test", -3, -2, 6, 4, mutableListOf())
+        MindMapNode("Machine\n Learning", -3, -2, 6, 4, mutableListOf(
+            MindMapNode("Deep\nLearning", -9, 2, 5, 3, mutableListOf()),
+            MindMapNode("Artificial\nIntelligence", -8, -6, 5, 3, mutableListOf()),
+            MindMapNode("Neural\nNetworks", 6, 4, 5, 4, mutableListOf())
+        ))
     )
 
-    override val root = stackpane { this += canvas }
+    val buttonPane = Pane()
+
+    override val root = stackpane {
+        this += canvas
+        this += buttonPane
+    }
+
+    class NodeViewModel(main: MainView, model: MindMapNode){
+        private val rect: Rectangle = {
+            val (x, y) = main.fromGridCoords(model.x.toDouble(), model.y.toDouble())
+            val w = main.gridSpacing * model.width.toDouble()
+            val h = main.gridSpacing * model.height.toDouble()
+            Rectangle(x, y, w, h).apply {
+                arcWidth = main.gridSpacing.toDouble()
+                arcHeight = main.gridSpacing.toDouble()
+            }
+        }()
+        private val label: Label = Label(model.key).apply {
+            textFill = Color.WHITE
+            alignment = Pos.CENTER
+            textAlignment = TextAlignment.CENTER
+        }
+        val children: MutableList<NodeViewModel> =
+            model.children.map{ NodeViewModel(main, it) }.toMutableList()
+
+        init {
+            main.buttonPane.apply {
+                add(rect)
+                stackpane {
+                    relocate(rect.x, rect.y)
+                    setPrefSize(rect.width, rect.height)
+                    this += label
+                }
+            }
+        }
+
+    }
 
     private fun drawGrid() {
 
@@ -50,6 +104,7 @@ class MainView : View("WikiMap") {
 
     init {
         drawGrid()
+        NodeViewModel(this, mindMap.root)
         this.currentWindow?.widthProperty()?.onChange {
             canvas.width = it
             drawGrid()
