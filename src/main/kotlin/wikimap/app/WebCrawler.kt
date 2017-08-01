@@ -28,5 +28,8 @@ class WebCrawler(seedUrl:String){
         //return url.readText()
         return ""
     }
+}
 
+fun main(args: Array<String>) {
+    var test = wikimap.app.WebCrawler("https://en.wikipedia.org/wiki/Main_Page")
 }

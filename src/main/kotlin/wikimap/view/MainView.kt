@@ -118,7 +118,6 @@ class MainView : View("WikiMap") {
             canvas.height = it
             drawGrid()
         }
-        var test = wikimap.app.WebCrawler("en.wikipedia.org")
     }
 
 }
