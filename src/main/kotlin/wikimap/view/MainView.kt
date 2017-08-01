@@ -12,6 +12,7 @@ import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.*
 import javafx.scene.shape.Rectangle
+import javafx.scene.text.FontWeight
 import javafx.scene.text.TextAlignment
 import org.w3c.dom.css.Rect
 import tornadofx.*
@@ -60,12 +61,16 @@ class MainView : View("WikiMap") {
             Rectangle(x, y, w, h).apply {
                 arcWidth = main.gridSpacing.toDouble()
                 arcHeight = main.gridSpacing.toDouble()
+                fill = Color(Math.random(), Math.random(), Math.random(), 0.7)
             }
         }()
         private val label: Label = Label(model.key).apply {
             textFill = Color.WHITE
             alignment = Pos.CENTER
             textAlignment = TextAlignment.CENTER
+            style {
+                fontWeight = FontWeight.BOLD
+            }
         }
         val children: MutableList<NodeViewModel> =
             model.children.map{ NodeViewModel(main, it) }.toMutableList()
