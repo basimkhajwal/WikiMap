@@ -3,8 +3,7 @@ package wikimap.app
 import java.net.URL
 import javax.xml.ws.WebEndpoint
 
-class WebCrawler(val seedUrl:String){
-    val maxDepth = 2
+class WebCrawler(val seedUrl:String, val maxDepth:Int){
     val crawledUrls:MutableList<String> = mutableListOf()
 
     fun crawl(currentUrl:String, depth:Int):List<String>{

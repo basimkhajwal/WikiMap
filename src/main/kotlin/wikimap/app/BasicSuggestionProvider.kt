@@ -2,12 +2,13 @@ package wikimap.app
 
 class BasicSuggestionProvider : SuggestionProvider{
     val seedUrl = "https://en.wikipedia.org"
+    val crawler = WebCrawler(seedUrl, 1)
 
     override fun getSuggestions(key:String):List<String>{
         val link = expandLink(key)
 
-        val crawler = WebCrawler(seedUrl)
-        val suggestedLinks = crawler.crawl(link, 1)
+
+        val suggestedLinks = crawler.crawl(link, 0)
 
         return extractArticleNames(suggestedLinks)
     }
@@ -28,4 +29,10 @@ class BasicSuggestionProvider : SuggestionProvider{
 
         return names
     }
+}
+
+fun main(args:Array<String>){
+    var provider = BasicSuggestionProvider()
+
+    println(provider.getSuggestions("Machine Learning"))
 }
