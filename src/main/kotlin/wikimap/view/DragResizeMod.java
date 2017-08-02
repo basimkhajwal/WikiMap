@@ -72,25 +72,21 @@ public class DragResizeMod {
         final DragResizeMod resizer = new DragResizeMod(node, listener);
 
         node.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
             public void handle(MouseEvent event) {
                 resizer.mousePressed(event);
             }
         });
         node.setOnMouseDragged(new EventHandler<MouseEvent>() {
-            @Override
             public void handle(MouseEvent event) {
                 resizer.mouseDragged(event);
             }
         });
         node.setOnMouseMoved(new EventHandler<MouseEvent>() {
-            @Override
             public void handle(MouseEvent event) {
                 resizer.mouseOver(event);
             }
         });
         node.setOnMouseReleased(new EventHandler<MouseEvent>() {
-            @Override
             public void handle(MouseEvent event) {
                 resizer.mouseReleased(event);
             }
