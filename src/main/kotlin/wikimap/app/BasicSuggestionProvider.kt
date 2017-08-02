@@ -7,7 +7,6 @@ class BasicSuggestionProvider : SuggestionProvider{
     override fun getSuggestions(key:String):List<String>{
         val link = expandLink(key)
 
-
         val suggestedLinks = crawler.crawl(link, 0)
 
         return extractArticleNames(suggestedLinks)
@@ -29,10 +28,4 @@ class BasicSuggestionProvider : SuggestionProvider{
 
         return names
     }
-}
-
-fun main(args:Array<String>){
-    var provider = BasicSuggestionProvider()
-
-    println(provider.getSuggestions("Machine Learning"))
 }
