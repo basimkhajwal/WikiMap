@@ -8,69 +8,26 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Rectangle;
 
 /**
- * SOURCE: github.com/varren/JavaFX-Resizable-Draggable-Node/
- *  ************* How to use ************************
- *
- * Rectangle rectangle = new Rectangle(50, 50);
- * rectangle.setFill(Color.BLACK);
- * DragResizeMod.makeResizable(rectangle, null);
- *
- * Pane root = new Pane();
- * root.getChildren().add(rectangle);
- *
- * primaryStage.setScene(new Scene(root, 300, 275));
- * primaryStage.show();
- *
- * ************* OnDragResizeEventListener **********
- *
- * You need to override OnDragResizeEventListener and
- * 1) preform out of main field bounds check
- * 2) make changes to the node
- * (this class will not change anything in node coordinates)
- *
- * There is defaultListener and it works only with Canvas nad Rectangle
+ * SOURCE: varren/JavaFX-Resizable-Draggable-Node/
  */
-
 public class DragResizeMod {
     public interface OnDragResizeEventListener {
         void onDrag(Node node, double x, double y, double h, double w);
-
         void onResize(Node node, double x, double y, double h, double w);
     }
 
     private static final OnDragResizeEventListener defaultListener = new OnDragResizeEventListener() {
         public void onDrag(Node node, double x, double y, double h, double w) {
-            /*
-            // TODO find generic way to get parent width and height of any node
-            // can perform out of bounds check here if you know your parent size
-            if (x > width - w ) x = width - w;
-            if (y > height - h) y = height - h;
-            if (x < 0) x = 0;
-            if (y < 0) y = 0;
-            */
             setNodeSize(node, x, y, h, w);
         }
 
         public void onResize(Node node, double x, double y, double h, double w) {
-            /*
-            // TODO find generic way to get parent width and height of any node
-            // can perform out of bounds check here if you know your parent size
-            if (w > width - x) w = width - x;
-            if (h > height - y) h = height - y;
-            if (x < 0) x = 0;
-            if (y < 0) y = 0;
-            */
             setNodeSize(node, x, y, h, w);
         }
 
         private void setNodeSize(Node node, double x, double y, double h, double w) {
             node.setLayoutX(x);
             node.setLayoutY(y);
-            // TODO find generic way to set width and height of any node
-            // here we cant set height and width to node directly.
-            // or i just cant find how to do it,
-            // so you have to wright resize code anyway for your Nodes...
-            //something like this
             if (node instanceof Canvas) {
                 ((Canvas) node).setWidth(w);
                 ((Canvas) node).setHeight(h);
@@ -91,15 +48,14 @@ public class DragResizeMod {
         E_RESIZE,
         W_RESIZE,
         N_RESIZE,
-        S_RESIZE;
+        S_RESIZE
     }
-
 
     private double clickX, clickY, nodeX, nodeY, nodeH, nodeW;
 
     private S state = S.DEFAULT;
 
-    private Node node;
+    private final Node node;
     private OnDragResizeEventListener listener = defaultListener;
 
     private static final int MARGIN = 8;
@@ -110,10 +66,6 @@ public class DragResizeMod {
         this.node = node;
         if (listener != null)
             this.listener = listener;
-    }
-
-    public static void makeResizable(Node node) {
-        makeResizable(node, null);
     }
 
     public static void makeResizable(Node node, OnDragResizeEventListener listener) {
@@ -145,12 +97,12 @@ public class DragResizeMod {
         });
     }
 
-    protected void mouseReleased(MouseEvent event) {
+    private void mouseReleased(MouseEvent event) {
         node.setCursor(Cursor.DEFAULT);
         state = S.DEFAULT;
     }
 
-    protected void mouseOver(MouseEvent event) {
+    private void mouseOver(MouseEvent event) {
         S state = currentMouseState(event);
         Cursor cursor = getCursorForState(state);
         node.setCursor(cursor);
@@ -199,8 +151,7 @@ public class DragResizeMod {
         }
     }
 
-
-    protected void mouseDragged(MouseEvent event) {
+    private void mouseDragged(MouseEvent event) {
 
         if (listener != null) {
             double mouseX = parentX(event.getX());
@@ -252,7 +203,7 @@ public class DragResizeMod {
         }
     }
 
-    protected void mousePressed(MouseEvent event) {
+    private void mousePressed(MouseEvent event) {
 
         if (isInResizeZone(event)) {
             setNewInitialEventCoordinates(event);
