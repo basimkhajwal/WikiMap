@@ -7,9 +7,9 @@ class WebCrawler(val seedUrl:String){
     val maxDepth = 2
     val crawledUrls:MutableList<String> = mutableListOf()
 
-    fun crawl(currentUrl:String, depth:Int){
+    fun crawl(currentUrl:String, depth:Int):List<String>{
         if(depth > maxDepth || crawledUrls.contains(currentUrl)) {
-            return
+            return listOf()
         }else{
             crawledUrls.add(currentUrl)
             println(currentUrl + " " + depth)
@@ -29,6 +29,7 @@ class WebCrawler(val seedUrl:String){
                 }
             }
 
+            return crawledUrls
         }
     }
 
