@@ -1,18 +1,9 @@
 package wikimap.view
 
-import com.sun.javafx.scene.SceneHelper
-import javafx.geometry.Pos
-import javafx.scene.Node
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
-import javafx.scene.control.Label
 import javafx.scene.layout.Pane
-import javafx.scene.layout.StackPane
 import javafx.scene.paint.*
-import javafx.scene.shape.Rectangle
-import javafx.scene.text.FontWeight
-import javafx.scene.text.TextAlignment
-import javafx.stage.Screen
 import tornadofx.*
 import wikimap.models.MindMapModel
 import wikimap.models.MindMapNode
@@ -69,7 +60,7 @@ class MainView : View("WikiMap") {
     }
 
     init {
-        root.scene.widthProperty().onChange { refresh() }
-        root.scene.heightProperty().onChange { refresh() }
+        currentWindow?.widthProperty()?.onChange { refresh() }
+        currentWindow?.heightProperty()?.onChange { refresh() }
     }
 }
