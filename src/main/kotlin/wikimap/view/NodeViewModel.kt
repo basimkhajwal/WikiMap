@@ -91,16 +91,20 @@ class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: Node
     val resizeListener = object : DragResizeMod.OnDragResizeEventListener {
         override fun onResize(n: Node?, x: Double, y: Double, h: Double, w: Double) {
             val (nx, ny) = toGridCoords(x, y)
-            val cx = Math.round(nx).toInt()
-            val cy = Math.round(ny).toInt()
 
-            if (cx != model.x || cy != model.y) {
+            if (nx != model.x.toDouble()) {
+                val cx = Math.round(nx).toInt()
                 model.width = (model.x + model.width) - cx
-                model.height = (model.y + model.height) - cy
                 model.x = cx
-                model.y = cy
             } else {
                 model.width = Math.round(w / spacing).toInt()
+            }
+
+            if (ny != model.y.toDouble()) {
+                val cy = Math.round(ny).toInt()
+                model.height = (model.y + model.height) - cy
+                model.y = cy
+            } else {
                 model.height = Math.round(h / spacing).toInt()
             }
 
