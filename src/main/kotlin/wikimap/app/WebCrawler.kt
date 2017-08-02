@@ -32,6 +32,23 @@ class WebCrawler(val seedUrl:String, val maxDepth:Int){
         }
     }
 
+    fun getSiteSearchResultLinks(searchTerm:String):List<String>{
+        val searchUrl = seedUrl + "/w/index.php?search=" + searchTerm.replace(" ", "+").replace("_", "+")
+
+        val searchResultsPage = downloadPage(searchUrl)
+        val resultLinks = extractSearchResultsLinks(searchResultsPage)
+        return resultLinks
+    }
+
+    fun extractSearchResultsLinks(fullPage:String):List<String>{
+        val resultsStart = fullPage.indexOf("<ul class='mw-search-results'>")
+        val resultsEnd = fullPage.indexOf("</ul>", resultsStart + 1)
+
+        val results = fullPage.slice(IntRange(resultsStart, resultsEnd - 1))
+
+        return extractLinks(results)
+    }
+
     fun downloadPage(urlString:String):String{
         val url = URL(urlString)
         return url.readText()
