@@ -6,9 +6,9 @@ import javafx.scene.control.Label
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
-import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
 import javafx.scene.shape.Rectangle
+import javafx.scene.shape.Shape
 import javafx.scene.text.FontWeight
 import javafx.scene.text.TextAlignment
 import wikimap.models.MindMapNode
@@ -17,46 +17,36 @@ import tornadofx.*
 class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: NodeConnection? = null) {
 
     class NodeConnection(val parent: NodeViewModel, val child: NodeViewModel) {
-
-        private val a = parent
-        private val b = child
-
-        val line = Line(0.0,0.0,0.0,0.0).apply {
-            strokeWidth = 2.0
-        }
+        val line = Line(0.0,0.0,0.0,0.0)
+        val clipPane = Pane(line)
 
         fun refresh() {
-            line.startX = a.node.layoutX + a.node.prefWidth / 2
-            line.startY = a.node.layoutY + a.node.prefHeight / 2
-            line.endX = b.node.layoutX + b.node.prefWidth / 2
-            line.endY = b.node.layoutY + b.node.prefHeight / 2
+            line.startX = parent.node.layoutX + parent.node.prefWidth / 2
+            line.startY = parent.node.layoutY + parent.node.prefHeight / 2
+            line.endX = child.node.layoutX + child.node.prefWidth / 2
+            line.endY = child.node.layoutY + child.node.prefHeight / 2
+
+            val total = Rectangle(clipPane.layoutBounds.width, clipPane.layoutBounds.height)
+            val mask = Shape.subtract(total, Shape.union(parent.rect, child.rect))
+            clipPane.clip = mask
         }
 
         init {
             child.parent = this
-            refresh()
-            //line.clip = Circle(line.startX, line.startY, 100.0)
-            val clipPane = Pane().apply {
-                style {
-                    fillWidth = true
-                    fillHeight = true
-                }
-                this += line
-
-            }
             parent.main.buttonPane += clipPane
+            refresh()
         }
     }
 
-    private val rect: Rectangle =
+    val rect: Rectangle =
         Rectangle(main.gridSpacing * model.width.toDouble(),
                   main.gridSpacing * model.height.toDouble()).apply {
             arcWidth = main.gridSpacing.toDouble()
             arcHeight = main.gridSpacing.toDouble()
-            fill = Color(Math.random(), Math.random(), Math.random(), 1.0)
+            fill = Color(Math.random(), Math.random(), Math.random(), 0.7)
         }
 
-    private val label: Label = Label(model.key).apply {
+    val label: Label = Label(model.key).apply {
         style {
             textFill = Color.WHITE
             fontWeight = FontWeight.BOLD
