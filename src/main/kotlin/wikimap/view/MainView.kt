@@ -52,11 +52,13 @@ class MainView : View("WikiMap") {
         }
     }
 
+    val onChange = ChangeEvent()
+
     private fun refresh() {
         canvas.width = root.scene.width
         canvas.height = root.scene.height
         drawGrid()
-        viewModel.refreshRecursive()
+        onChange.fireChange()
     }
 
     init {

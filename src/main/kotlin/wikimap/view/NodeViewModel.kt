@@ -11,7 +11,7 @@ import javafx.scene.text.TextAlignment
 import wikimap.models.MindMapNode
 import tornadofx.*
 
-class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: NodeConnection? = null) {
+class NodeViewModel(val main: MainView, val model: MindMapNode) {
 
     val rect: Rectangle =
         Rectangle(main.gridSpacing * model.width.toDouble(),
@@ -33,8 +33,7 @@ class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: Node
 
     val node = StackPane(rect, label)
     val spacing = main.gridSpacing
-    val children: MutableList<NodeConnection> =
-            model.children.map{ NodeConnection(this, NodeViewModel(main, it)) }.toMutableList()
+    val children = model.children.map{ NodeConnection(this, NodeViewModel(main, it)) }.toMutableList()
 
     fun fromGridCoords(x: Double, y: Double): Pair<Double, Double> {
         return Pair(x*spacing + main.canvas.width/2, y*spacing + main.canvas.height/2)
@@ -44,6 +43,8 @@ class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: Node
         return Pair((x - main.canvas.width/2) / spacing, (y - main.canvas.height/2) / spacing)
     }
 
+    val onChange = ChangeEvent()
+
     fun refresh() {
         val (x, y) = fromGridCoords(model.x.toDouble(), model.y.toDouble())
         rect.width = model.width.toDouble() * spacing
@@ -51,14 +52,8 @@ class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: Node
         node.relocate(x, y)
         node.setPrefSize(rect.width, rect.height)
 
-        parent?.refresh()
-        children.forEach { it.refresh() }
+        onChange.fireChange()
         node.toFront()
-    }
-
-    fun refreshRecursive() {
-        refresh()
-        children.forEach { it.child.refresh() }
     }
 
     val resizeListener = object : DragResizeMod.OnDragResizeEventListener {
@@ -80,7 +75,6 @@ class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: Node
             } else {
                 model.height = Math.round(h / spacing).toInt()
             }
-
             refresh()
         }
 
@@ -96,5 +90,7 @@ class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: Node
         DragResizeMod.makeResizable(node, resizeListener)
         main.buttonPane += node
         refresh()
+
+        main.onChange += this::refresh
     }
 }

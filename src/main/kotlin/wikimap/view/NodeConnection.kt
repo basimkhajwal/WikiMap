@@ -21,8 +21,10 @@ class NodeConnection(val parent: NodeViewModel, val child: NodeViewModel) {
         }
 
         init {
-            child.parent = this
             parent.main.buttonPane += clipPane
             refresh()
+
+            parent.onChange += this::refresh
+            child.onChange += this::refresh
         }
     }
