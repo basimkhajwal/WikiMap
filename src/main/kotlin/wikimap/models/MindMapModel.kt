@@ -12,7 +12,7 @@ data class MindMapModel(
  */
 data class MindMapNode(
     var key: String,
-    var x: Int, var y: Int, /* Bottom-left grid coords */
+    var x: Int, var y: Int,
     var width: Int, var height: Int,
-    val children: MutableList<MindMapNode>
+    val children: MutableList<MindMapNode> = mutableListOf()
 )
