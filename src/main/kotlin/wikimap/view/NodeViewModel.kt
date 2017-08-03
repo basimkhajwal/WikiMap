@@ -45,6 +45,9 @@ class NodeViewModel(val main: MainView, val model: MindMapNode) {
         return Pair((x - main.canvas.width/2) / spacing, (y - main.canvas.height/2) / spacing)
     }
 
+    fun getCenterX(): Double = fromGridCoords(model.x + model.width/2.0, 0.0).first
+    fun getCenterY(): Double = fromGridCoords(0.0, model.y + model.height/2.0).second
+
     fun refresh() {
         val (x, y) = fromGridCoords(model.x.toDouble(), model.y.toDouble())
         rect.width = model.width.toDouble() * spacing
@@ -54,6 +57,24 @@ class NodeViewModel(val main: MainView, val model: MindMapNode) {
 
         onChange.fireChange()
         node.toFront()
+    }
+
+    fun createChild(dist: Double = 3.0, angle: Double = Math.random()*2*Math.PI, width:Int=6, height:Int=4, key:String="test") {
+
+        val centerDist = dist + (maxOf(width, height) + maxOf(node.width, node.height)) * Math.sqrt(2.0)
+
+        val centerX = getCenterX() + centerDist * Math.cos(angle)
+        val centerY = getCenterY() + centerDist * Math.sin(angle)
+        var (gridX, gridY) = toGridCoords(centerX, centerY)
+        gridX = if (centerX < getCenterX()) Math.floor(gridX) else Math.ceil(gridX)
+        gridY = if (centerY < getCenterX()) Math.floor(gridY) else Math.ceil(gridY)
+
+        val childModel = MindMapNode(key, gridX.toInt() - width/2, gridY.toInt() - height/2, width, height)
+        val childNode = NodeViewModel(main, childModel)
+
+        model.children += childModel
+        children += NodeConnection(this, childNode)
+        refresh()
     }
 
     val resizeListener = object : DragResizeMod.OnDragResizeEventListener {
@@ -89,8 +110,9 @@ class NodeViewModel(val main: MainView, val model: MindMapNode) {
     init {
         DragResizeMod.makeResizable(node, resizeListener)
         main.buttonPane += node
-        refresh()
-
         main.onChange += this::refresh
+
+        node.onDoubleClick { createChild() }
+        refresh()
     }
 }

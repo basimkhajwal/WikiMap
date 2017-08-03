@@ -11,20 +11,22 @@ class NodeConnection(val parent: NodeViewModel, val child: NodeViewModel) {
         val clipPane = Pane(line)
 
         fun refresh() {
-            line.startX = parent.node.layoutX + parent.node.prefWidth / 2
-            line.startY = parent.node.layoutY + parent.node.prefHeight / 2
-            line.endX = child.node.layoutX + child.node.prefWidth / 2
-            line.endY = child.node.layoutY + child.node.prefHeight / 2
+            line.startX = parent.getCenterX()
+            line.startY = parent.getCenterY()
+            line.endX = child.getCenterX()
+            line.endY = child.getCenterY()
 
             val total = Rectangle(clipPane.layoutBounds.width, clipPane.layoutBounds.height)
             clipPane.clip = Shape.subtract(total, Shape.union(parent.rect, child.rect))
+            clipPane.toBack()
         }
 
         init {
-            parent.main.buttonPane += clipPane
             refresh()
+            parent.main.buttonPane += clipPane
 
             parent.onChange += this::refresh
             child.onChange += this::refresh
+            clipPane.layoutBoundsProperty().onChange { refresh() }
         }
     }

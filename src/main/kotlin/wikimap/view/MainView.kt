@@ -57,8 +57,10 @@ class MainView : View("WikiMap") {
     }
 
     private fun refresh() {
-        canvas.width = root.scene.width
-        canvas.height = root.scene.height
+        if (root.scene != null) {
+            canvas.width = root.scene.width
+            canvas.height = root.scene.height
+        }
         drawGrid()
         onChange.fireChange()
     }
@@ -66,5 +68,6 @@ class MainView : View("WikiMap") {
     init {
         currentWindow?.widthProperty()?.onChange { refresh() }
         currentWindow?.heightProperty()?.onChange { refresh() }
+        refresh()
     }
 }
