@@ -13,6 +13,8 @@ import wikimap.models.MindMapNode
  */
 class MainView : View("WikiMap") {
 
+    val onChange = ChangeEvent()
+
     val canvas = Canvas(800.0,700.0)
     val graphics: GraphicsContext = canvas.graphicsContext2D
 
@@ -20,11 +22,13 @@ class MainView : View("WikiMap") {
 
     /* Fixed for now, but can be changed later */
     val mindMap = MindMapModel(
-        MindMapNode("Machine Learning", -3, -2, 6, 4, mutableListOf(
-            MindMapNode("Deep Learning", -9, 1, 5, 3, mutableListOf()),
-            MindMapNode("Artificial Intelligence", -8, -6, 5, 3, mutableListOf()),
-            MindMapNode("Neural Networks", 6, 4, 5, 4, mutableListOf())
-        ))
+        MindMapNode("Machine Learning", -3, -2, 6, 4,
+            mutableListOf(
+                MindMapNode("Deep Learning", -9, 1, 5, 3),
+                MindMapNode("Artificial Intelligence", -8, -6, 5, 3),
+                MindMapNode("Neural Networks", 6, 4, 5, 4)
+            )
+        )
     )
     val buttonPane = Pane()
     val viewModel = NodeViewModel(this, mindMap.root)
@@ -51,8 +55,6 @@ class MainView : View("WikiMap") {
             graphics.strokeLine(0.0, y*gridSpacing + hh, canvas.width, y*gridSpacing + hh)
         }
     }
-
-    val onChange = ChangeEvent()
 
     private fun refresh() {
         canvas.width = root.scene.width

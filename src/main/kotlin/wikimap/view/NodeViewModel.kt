@@ -31,6 +31,8 @@ class NodeViewModel(val main: MainView, val model: MindMapNode) {
         }
     }
 
+    val onChange = ChangeEvent()
+
     val node = StackPane(rect, label)
     val spacing = main.gridSpacing
     val children = model.children.map{ NodeConnection(this, NodeViewModel(main, it)) }.toMutableList()
@@ -42,8 +44,6 @@ class NodeViewModel(val main: MainView, val model: MindMapNode) {
     fun toGridCoords(x: Double, y: Double): Pair<Double, Double> {
         return Pair((x - main.canvas.width/2) / spacing, (y - main.canvas.height/2) / spacing)
     }
-
-    val onChange = ChangeEvent()
 
     fun refresh() {
         val (x, y) = fromGridCoords(model.x.toDouble(), model.y.toDouble())
