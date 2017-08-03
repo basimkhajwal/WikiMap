@@ -20,10 +20,10 @@ class MainView : View("WikiMap") {
 
     /* Fixed for now, but can be changed later */
     val mindMap = MindMapModel(
-        MindMapNode("Machine\n Learning", -3, -2, 6, 4, mutableListOf(
-            MindMapNode("Deep\nLearning", -9, 1, 5, 3, mutableListOf()),
-            MindMapNode("Artificial\nIntelligence", -8, -6, 5, 3, mutableListOf()),
-            MindMapNode("Neural\nNetworks", 6, 4, 5, 4, mutableListOf())
+        MindMapNode("Machine Learning", -3, -2, 6, 4, mutableListOf(
+            MindMapNode("Deep Learning", -9, 1, 5, 3, mutableListOf()),
+            MindMapNode("Artificial Intelligence", -8, -6, 5, 3, mutableListOf()),
+            MindMapNode("Neural Networks", 6, 4, 5, 4, mutableListOf())
         ))
     )
     val buttonPane = Pane()
