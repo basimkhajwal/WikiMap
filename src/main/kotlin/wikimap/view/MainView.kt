@@ -56,7 +56,7 @@ class MainView : View("WikiMap") {
         canvas.width = root.scene.width
         canvas.height = root.scene.height
         drawGrid()
-        viewModel.setupAll()
+        viewModel.refreshRecursive()
     }
 
     init {

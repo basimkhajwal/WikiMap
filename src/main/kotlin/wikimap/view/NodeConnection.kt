@@ -17,26 +17,12 @@ class NodeConnection(val parent: NodeViewModel, val child: NodeViewModel) {
             line.endY = child.node.layoutY + child.node.prefHeight / 2
 
             val total = Rectangle(clipPane.layoutBounds.width, clipPane.layoutBounds.height)
-            val mask = Shape.subtract(total, Shape.union(parent.rect, child.rect))
-            clipPane.clip = mask
-        }
-
-        fun show() {
-            clipPane.show()
-            refresh()
-        }
-
-        fun hide() {
-            clipPane.hide()
-        }
-
-        fun close() {
-            clipPane.removeFromParent()
+            clipPane.clip = Shape.subtract(total, Shape.union(parent.rect, child.rect))
         }
 
         init {
             child.parent = this
             parent.main.buttonPane += clipPane
-            show()
+            refresh()
         }
     }
