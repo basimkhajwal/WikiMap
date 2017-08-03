@@ -1,42 +1,18 @@
-package wikimap.view;
+package wikimap.view
 
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Label
-import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
-import javafx.scene.shape.Line
 import javafx.scene.shape.Rectangle
-import javafx.scene.shape.Shape
 import javafx.scene.text.FontWeight
 import javafx.scene.text.TextAlignment
 import wikimap.models.MindMapNode
 import tornadofx.*
+import wikimap.app.BasicSuggestionProvider
 
 class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: NodeConnection? = null) {
-
-    class NodeConnection(val parent: NodeViewModel, val child: NodeViewModel) {
-        val line = Line(0.0,0.0,0.0,0.0)
-        val clipPane = Pane(line)
-
-        fun refresh() {
-            line.startX = parent.node.layoutX + parent.node.prefWidth / 2
-            line.startY = parent.node.layoutY + parent.node.prefHeight / 2
-            line.endX = child.node.layoutX + child.node.prefWidth / 2
-            line.endY = child.node.layoutY + child.node.prefHeight / 2
-
-            val total = Rectangle(clipPane.layoutBounds.width, clipPane.layoutBounds.height)
-            val mask = Shape.subtract(total, Shape.union(parent.rect, child.rect))
-            clipPane.clip = mask
-        }
-
-        init {
-            child.parent = this
-            parent.main.buttonPane += clipPane
-            refresh()
-        }
-    }
 
     val rect: Rectangle =
         Rectangle(main.gridSpacing * model.width.toDouble(),
@@ -52,6 +28,7 @@ class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: Node
             fontWeight = FontWeight.BOLD
             alignment = Pos.CENTER
             textAlignment = TextAlignment.CENTER
+            wrapText = true
         }
     }
 
@@ -59,6 +36,8 @@ class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: Node
     val spacing = main.gridSpacing
     val children: MutableList<NodeConnection> =
             model.children.map{ NodeConnection(this, NodeViewModel(main, it)) }.toMutableList()
+
+    var suggestions: MutableList<NodeConnection>? = null
 
     fun fromGridCoords(x: Double, y: Double): Pair<Double, Double> {
         return Pair(x*spacing + main.canvas.width/2, y*spacing + main.canvas.height/2)
@@ -77,6 +56,7 @@ class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: Node
 
         parent?.refresh()
         children.forEach { it.refresh() }
+        if (suggestions != null) updateSuggestions()
         node.toFront()
     }
 
@@ -86,6 +66,34 @@ class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: Node
             it.child.setupAll()
             it.refresh()
         }
+    }
+
+    fun show() {
+        setup()
+        node.show()
+        children.forEach {
+            it.child.show()
+            it.show()
+        }
+        parent?.show()
+    }
+
+    fun hide() {
+        children.forEach {
+            it.child.hide()
+            it.hide()
+        }
+        parent?.hide()
+        node.hide()
+    }
+
+    fun close() {
+        node.removeFromParent()
+        children.forEach {
+            it.child.close()
+            it.close()
+        }
+        parent?.close()
     }
 
     val resizeListener = object : DragResizeMod.OnDragResizeEventListener {
@@ -119,9 +127,59 @@ class NodeViewModel(val main: MainView, val model: MindMapNode, var parent: Node
         }
     }
 
+    fun updateSuggestions() {
+        if (suggestions != null) {
+            if (suggestions?.size ?: 0 < 1) return
+            suggestions?.get(0)?.child?.model?.x = model.x
+            suggestions?.get(0)?.child?.model?.y = model.y - 6
+            suggestions?.get(0)?.child?.setup()
+            if (suggestions?.size ?: 0 < 2) return
+            suggestions?.get(1)?.child?.model?.x = model.x + model.width + 2
+            suggestions?.get(1)?.child?.model?.y = model.y
+            suggestions?.get(1)?.child?.setup()
+            if (suggestions?.size ?: 0 < 3) return
+            suggestions?.get(2)?.child?.model?.x = model.x - 6 - 2
+            suggestions?.get(2)?.child?.model?.y = model.y
+            suggestions?.get(2)?.child?.setup()
+            return
+        }
+
+        try {
+            val terms = BasicSuggestionProvider().getSuggestions(model.key)
+
+            val nodes = mutableListOf<MindMapNode>()
+            if (terms.size >= 1) nodes += MindMapNode(terms[0], model.x, model.y - 6, 6, 4)
+            if (terms.size >= 2) nodes += MindMapNode(terms[1], model.x + model.width + 2, model.y, 6, 4)
+            if (terms.size >= 3) nodes += MindMapNode(terms[2], model.x - 6 - 2, model.y, 6, 4)
+
+            suggestions = nodes.map { node -> NodeConnection(this, NodeViewModel(main, node)) }.toMutableList()
+            suggestions?.map { it.child.setup(); it.refresh() }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     init {
-        setup()
         DragResizeMod.makeResizable(node, resizeListener)
         main.buttonPane += node
+        show()
+
+        node.onHover { isHover ->
+            if (model.isLeaf()) {
+                if (isHover) {
+                    if (suggestions == null) updateSuggestions()
+
+                    suggestions?.forEach {
+                        it.child.show()
+                        it.show()
+                    }
+                } else {
+                    suggestions?.forEach {
+                        it.child.hide()
+                        it.hide()
+                    }
+                }
+            }
+        }
     }
 }
