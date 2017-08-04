@@ -1,11 +1,18 @@
 package wikimap.view
 
+import javafx.beans.binding.Bindings
+import javafx.beans.property.SimpleStringProperty
+import javafx.beans.property.StringProperty
+import javafx.beans.value.ObservableStringValue
+import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.Node
-import javafx.scene.control.Label
+import javafx.scene.control.*
+import javafx.scene.layout.Background
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
+import javafx.scene.text.FontSmoothingType
 import javafx.scene.text.FontWeight
 import javafx.scene.text.TextAlignment
 import wikimap.models.MindMapNode
@@ -21,6 +28,7 @@ class NodeViewModel(val main: MainView, val model: MindMapNode) {
             fill = Color(Math.random(), Math.random(), Math.random(), 0.7)
         }
 
+    val keyText = SimpleStringProperty(model.key)
     val label: Label = Label(model.key).apply {
         style {
             textFill = Color.WHITE
@@ -29,11 +37,25 @@ class NodeViewModel(val main: MainView, val model: MindMapNode) {
             textAlignment = TextAlignment.CENTER
             wrapText = true
         }
+        textProperty().bind(keyText)
+    }
+    val textArea: TextArea = TextArea(model.key).apply {
+        style {
+            textFill = Color.WHITE
+            fontWeight = FontWeight.BOLD
+            wrapText = true
+            backgroundColor = multi(Color.TRANSPARENT)
+        }
+        paddingTop = 10
+        paddingBottom = 10
+
+        textProperty().bindBidirectional(keyText)
+        isVisible = false
     }
 
     val onChange = ChangeEvent()
 
-    val node = StackPane(rect, label)
+    val node = StackPane(rect, label, textArea)
     val spacing = main.gridSpacing
     val children = model.children.map{ NodeConnection(this, NodeViewModel(main, it)) }.toMutableList()
 
@@ -61,7 +83,7 @@ class NodeViewModel(val main: MainView, val model: MindMapNode) {
 
     fun createChild(dist: Double = 3.0, angle: Double = Math.random()*2*Math.PI, width:Int=6, height:Int=4, key:String="test") {
 
-        val centerDist = dist + (maxOf(width, height) + maxOf(node.width, node.height)) * Math.sqrt(2.0)
+        val centerDist = dist + (maxOf(width, height) + maxOf(node.width, node.height)) / Math.sqrt(2.0)
 
         val centerX = getCenterX() + centerDist * Math.cos(angle)
         val centerY = getCenterY() + centerDist * Math.sin(angle)
@@ -75,6 +97,35 @@ class NodeViewModel(val main: MainView, val model: MindMapNode) {
         model.children += childModel
         children += NodeConnection(this, childNode)
         refresh()
+    }
+
+    fun getAllChildren(node: Node): List<Node> {
+        val children = node.getChildList()?.toList() ?: listOf()
+        return children + children.flatMap { getAllChildren(it) }.toList()
+    }
+
+    fun showTextArea() {
+        label.isVisible = false
+        textArea.isVisible = true
+
+        (textArea.childrenUnmodifiable[0] as ScrollPane).vbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+        for (child in getAllChildren(textArea)) {
+            child.style {
+                backgroundColor = multi(Color(0.0,0.0,0.0,0.1))
+                alignment = Pos.CENTER
+                textAlignment = TextAlignment.CENTER
+            }
+
+            // Prevent blurry text
+            child.isCache = false
+        }
+
+        textArea.requestFocus()
+    }
+
+    fun hideTextArea() {
+        label.isVisible = true
+        textArea.isVisible = false
     }
 
     val resizeListener = object : DragResizeMod.OnDragResizeEventListener {
@@ -112,7 +163,13 @@ class NodeViewModel(val main: MainView, val model: MindMapNode) {
         main.buttonPane += node
         main.onChange += this::refresh
 
-        node.onDoubleClick { createChild() }
+        keyText.onChange { if (it != null) model.key = it }
+
+        label.onDoubleClick { showTextArea() }
+        textArea.focusedProperty().onChange { if (!it) hideTextArea() }
+
+        rect.onDoubleClick {  println("CLICKED!") }
+
         refresh()
     }
 }

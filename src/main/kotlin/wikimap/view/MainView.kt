@@ -66,6 +66,10 @@ class MainView : View("WikiMap") {
     }
 
     init {
+
+        root.isFocusTraversable = true
+        root.setOnMousePressed { root.requestFocus() }
+
         currentWindow?.widthProperty()?.onChange { refresh() }
         currentWindow?.heightProperty()?.onChange { refresh() }
         refresh()
