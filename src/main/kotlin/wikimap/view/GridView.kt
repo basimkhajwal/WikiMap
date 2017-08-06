@@ -13,6 +13,11 @@ class GridView(main: MainView) : Pane() {
     private val g2d = canvas.graphicsContext2D
     private val spacing = main.gridSpacing
 
+    init {
+        this += canvas
+        main.onChange += this::refresh
+    }
+
     fun refresh() {
 
         val bounds = parent.layoutBounds
@@ -46,10 +51,5 @@ class GridView(main: MainView) : Pane() {
 
     fun toGridCoords(x: Double, y: Double): Pair<Double, Double> {
         return Pair((x - width/2) / spacing, (y - height/2) / spacing)
-    }
-
-    init {
-        this += canvas
-        main.onChange += this::refresh
     }
 }

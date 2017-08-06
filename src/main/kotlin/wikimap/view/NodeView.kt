@@ -51,70 +51,6 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
 
     val spacing = main.gridSpacing
     val grid = main.gridView
-    val children = model.children.map{ ConnectionView(this, NodeView(main, it)) }.toMutableList()
-
-    fun getCenterX(): Double = grid.fromGridCoords(model.x + model.width/2.0, 0.0).first
-    fun getCenterY(): Double = grid.fromGridCoords(0.0, model.y + model.height/2.0).second
-
-    private fun refresh() {
-        val (x, y) = grid.fromGridCoords(model.x.toDouble(), model.y.toDouble())
-        rect.width = model.width.toDouble() * spacing
-        rect.height = model.height.toDouble() * spacing
-        relocate(x, y)
-        setPrefSize(rect.width, rect.height)
-
-        onChange.fireChange()
-        toFront()
-    }
-
-    fun createChild(dist: Double = 3.0, angle: Double = Math.random()*2*Math.PI, width:Int=6, height:Int=4, key:String="test") {
-
-        val centerDist = dist + (maxOf(width, height) + maxOf(this.width, this.height)) / Math.sqrt(2.0)
-
-        val centerX = getCenterX() + centerDist * Math.cos(angle)
-        val centerY = getCenterY() + centerDist * Math.sin(angle)
-        var (gridX, gridY) = grid.toGridCoords(centerX, centerY)
-        gridX = if (centerX < getCenterX()) Math.floor(gridX) else Math.ceil(gridX)
-        gridY = if (centerY < getCenterX()) Math.floor(gridY) else Math.ceil(gridY)
-
-        val childModel = MindMapNode(key, gridX.toInt() - width/2, gridY.toInt() - height/2, width, height)
-        val childNode = NodeView(main, childModel)
-
-        model.children += childModel
-        children += ConnectionView(this, childNode)
-        refresh()
-    }
-
-    fun getAllChildren(node: Node): List<Node> {
-        val children = node.getChildList()?.toList() ?: listOf()
-        return children + children.flatMap { getAllChildren(it) }.toList()
-    }
-
-    private fun showTextArea() {
-        label.isVisible = false
-        textArea.isVisible = true
-
-        val scrollPane = textArea.childrenUnmodifiable[0] as ScrollPane
-        scrollPane.vbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-
-        for (child in getAllChildren(textArea)) {
-            child.style {
-                backgroundColor = multi(Color(0.0,0.0,0.0,0.05))
-                alignment = Pos.CENTER
-                textAlignment = TextAlignment.CENTER
-            }
-
-            // Prevent blurry text
-            child.isCache = false
-        }
-
-        textArea.requestFocus()
-    }
-
-    private fun hideTextArea() {
-        label.isVisible = true
-        textArea.isVisible = false
-    }
 
     private val resizeListener = object : DragResizeMod.OnDragResizeEventListener {
         override fun onResize(n: Node?, x: Double, y: Double, h: Double, w: Double) {
@@ -153,9 +89,6 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
         this += label
         this += textArea
 
-        main.nodePane += this
-        children.forEach { main.nodePane += it }
-
         keyText.onChange { if (it != null) model.key = it }
 
         label.onDoubleClick { showTextArea() }
@@ -165,5 +98,50 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
 
         main.onChange += this::refresh
         refresh()
+    }
+
+    fun getCenterX(): Double = grid.fromGridCoords(model.x + model.width/2.0, 0.0).first
+    fun getCenterY(): Double = grid.fromGridCoords(0.0, model.y + model.height/2.0).second
+
+    private fun refresh() {
+        val (x, y) = grid.fromGridCoords(model.x.toDouble(), model.y.toDouble())
+        rect.width = model.width.toDouble() * spacing
+        rect.height = model.height.toDouble() * spacing
+        relocate(x, y)
+        setPrefSize(rect.width, rect.height)
+
+        onChange.fireChange()
+        toFront()
+    }
+
+    private fun getAllChildren(node: Node): List<Node> {
+        val children = node.getChildList()?.toList() ?: listOf()
+        return children + children.flatMap { getAllChildren(it) }.toList()
+    }
+
+    private fun showTextArea() {
+        label.isVisible = false
+        textArea.isVisible = true
+
+        val scrollPane = textArea.childrenUnmodifiable[0] as ScrollPane
+        scrollPane.vbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+
+        for (child in getAllChildren(textArea)) {
+            child.style {
+                backgroundColor = multi(Color(0.0,0.0,0.0,0.05))
+                alignment = Pos.CENTER
+                textAlignment = TextAlignment.CENTER
+            }
+
+            // Prevent blurry text
+            child.isCache = false
+        }
+
+        textArea.requestFocus()
+    }
+
+    private fun hideTextArea() {
+        label.isVisible = true
+        textArea.isVisible = false
     }
 }

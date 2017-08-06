@@ -1,5 +1,9 @@
 package wikimap.view
 
+import javafx.beans.property.SimpleListProperty
+import javafx.beans.property.SimpleObjectProperty
+import javafx.collections.ObservableList
+import javafx.scene.Node
 import javafx.scene.control.SplitPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
@@ -30,23 +34,76 @@ class MainView : View("WikiMap") {
     val gridView = GridView(this)
     val nodePane = Pane()
 
-    override val root = SplitPane(StackPane(gridView, nodePane), SelectionView())
+    val nodes = mutableListOf<NodeView>()
+    val nodeConnections = mutableListOf<ConnectionView>()
+
+    val selectedNodesProperty = listOf<NodeView>().observable()
+    var selectedNodes by selectedNodesProperty
+
+    val mindMapView = StackPane(gridView, nodePane)
+    override val root = SplitPane(mindMapView, SelectionView())
+
+    init {
+        createNodeTree(mindMap.root)
+
+        root.dividers.forEach { it.positionProperty().onChange { refresh() } }
+
+        mindMapView.isFocusTraversable = true
+        mindMapView.setOnMousePressed { root.requestFocus() }
+
+        currentWindow?.widthProperty()?.onChange { refresh() }
+        currentWindow?.heightProperty()?.onChange { refresh() }
+        refresh()
+    }
+
+    fun selectNode(node: NodeView) {
+
+        if (Key)
+    }
 
     private fun refresh() {
         onChange.fireChange()
     }
 
-    init {
+    private fun createNodeTree(node: MindMapNode): NodeView {
+        val nodeView = NodeView(this, node)
+        nodes += nodeView
+        nodePane += nodeView
 
-        NodeView(this, mindMap.root)
+        for (child in node.children) {
+            val childView = createNodeTree(child)
+            val conn = ConnectionView(nodeView, childView)
 
-        root.dividers.forEach { it.positionProperty().onChange { refresh() } }
+            nodePane += conn
+            nodeConnections += conn
+        }
 
-        root.isFocusTraversable = true
-        root.setOnMousePressed { root.requestFocus() }
+        return nodeView
+    }
 
-        currentWindow?.widthProperty()?.onChange { refresh() }
-        currentWindow?.heightProperty()?.onChange { refresh() }
+    private fun findNode(model: MindMapNode): NodeView? {
+        return nodes.find { it.model == model }
+    }
+
+    private fun createChild(parent: MindMapNode, dist: Double = 3.0, angle: Double = Math.random()*2*Math.PI, width:Int=6, height:Int=4, key:String="test") {
+
+        val parentNode = findNode(parent)!!
+        val centerDist = dist + (maxOf(width, height) + maxOf(parentNode.width, parentNode.height)) / Math.sqrt(2.0)
+
+        val centerX = parentNode.getCenterX() + centerDist * Math.cos(angle)
+        val centerY = parentNode.getCenterY() + centerDist * Math.sin(angle)
+        var (gridX, gridY) = gridView.toGridCoords(centerX, centerY)
+        gridX = if (Math.cos(angle) < 0) Math.floor(gridX) else Math.ceil(gridX)
+        gridY = if (Math.sin(angle) < 0) Math.floor(gridY) else Math.ceil(gridY)
+
+        val childModel = MindMapNode(key, gridX.toInt() - width/2, gridY.toInt() - height/2, width, height)
+        val childNode = NodeView(this, childModel)
+        val conn = ConnectionView(parentNode, childNode)
+
+        parent.children += childModel
+        nodes += childNode
+        nodeConnections += conn
+
         refresh()
     }
 }
