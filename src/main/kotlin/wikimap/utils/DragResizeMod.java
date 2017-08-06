@@ -1,4 +1,4 @@
-package wikimap.view;
+package wikimap.utils;
 
 import javafx.event.EventHandler;
 import javafx.scene.Cursor;
@@ -96,6 +96,8 @@ public class DragResizeMod {
     private void mouseReleased(MouseEvent event) {
         node.setCursor(Cursor.DEFAULT);
         state = S.DEFAULT;
+
+        event.consume();
     }
 
     private void mouseOver(MouseEvent event) {
@@ -197,6 +199,8 @@ public class DragResizeMod {
                 listener.onResize(node, newX, newY, newH, newW);
             }
         }
+
+        event.consume();
     }
 
     private void mousePressed(MouseEvent event) {
@@ -210,6 +214,8 @@ public class DragResizeMod {
         } else {
             state = S.DEFAULT;
         }
+
+        event.consume();
     }
 
     private void setNewInitialEventCoordinates(MouseEvent event) {
