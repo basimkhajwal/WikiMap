@@ -1,15 +1,17 @@
 package wikimap.view
 
-import javafx.beans.property.SimpleListProperty
-import javafx.beans.property.SimpleObjectProperty
-import javafx.collections.ObservableList
-import javafx.scene.Node
+import javafx.event.EventHandler
 import javafx.scene.control.SplitPane
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
+import javafx.scene.paint.Color
+import javafx.scene.shape.Rectangle
 import tornadofx.*
 import wikimap.models.MindMapModel
 import wikimap.models.MindMapNode
+import wikimap.utils.KeyboardHandler
 
 /**
  * The main view of the application
@@ -37,8 +39,18 @@ class MainView : View("WikiMap") {
     val nodes = mutableListOf<NodeView>()
     val nodeConnections = mutableListOf<ConnectionView>()
 
-    val selectedNodesProperty = listOf<NodeView>().observable()
-    var selectedNodes by selectedNodesProperty
+    val selectedNodes = mutableListOf<NodeView>().observable()
+
+    val keyboardHandler = KeyboardHandler()
+
+    var clickX = 0.0
+    var clickY = 0.0
+    val rectangleSelect = Rectangle().apply {
+        fill = Color(0.0,0.05,0.1,0.05)
+        stroke = Color.DARKGRAY
+        isVisible = false
+    }
+    var isRectangleSelect = false
 
     val mindMapView = StackPane(gridView, nodePane)
     override val root = SplitPane(mindMapView, SelectionView())
@@ -46,19 +58,60 @@ class MainView : View("WikiMap") {
     init {
         createNodeTree(mindMap.root)
 
+        root.addEventFilter(KeyEvent.ANY, keyboardHandler)
         root.dividers.forEach { it.positionProperty().onChange { refresh() } }
 
+        nodePane += rectangleSelect
+
+        mindMapView.onMousePressed = EventHandler { event ->
+            selectNodes()
+
+            mindMapView.requestFocus()
+            clickX = event.x
+            clickY = event.y
+
+            rectangleSelect.x = event.x
+            rectangleSelect.y = event.y
+            rectangleSelect.toFront()
+        }
+
+        mindMapView.onMouseDragged = EventHandler { event ->
+            rectangleSelect.isVisible = true
+
+            rectangleSelect.x = minOf(event.x, clickX)
+            rectangleSelect.y = minOf(event.y, clickY)
+            rectangleSelect.width = maxOf(event.x, clickX) - rectangleSelect.x
+            rectangleSelect.height = maxOf(event.y, clickY) - rectangleSelect.y
+        }
+
+        mindMapView.onMouseReleased = EventHandler { event ->
+            if (rectangleSelect.isVisible) {
+                rectangleSelect.isVisible = false
+
+                selectNodes(*nodes.filter { node ->
+                    rectangleSelect.contains(node.layoutX, node.layoutY) &&
+                    rectangleSelect.contains(node.layoutX + node.width, node.layoutY + node.height)
+                }.toTypedArray())
+            }
+        }
+
         mindMapView.isFocusTraversable = true
-        mindMapView.setOnMousePressed { root.requestFocus() }
 
         currentWindow?.widthProperty()?.onChange { refresh() }
         currentWindow?.heightProperty()?.onChange { refresh() }
         refresh()
     }
 
-    fun selectNode(node: NodeView) {
+    fun selectNodes(vararg ns: NodeView) {
+        if (!keyboardHandler.isKeyDown(KeyCode.SHIFT)) {
+            for (node in selectedNodes) node.isSelected = false
+            selectedNodes.clear()
+        }
 
-        if (Key)
+        for (node in ns) {
+            node.isSelected = true
+            selectedNodes += node
+        }
     }
 
     private fun refresh() {

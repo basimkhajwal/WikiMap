@@ -1,28 +1,35 @@
 package wikimap.view
 
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.*
-import javafx.scene.layout.StackPane
+import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import javafx.scene.text.FontWeight
 import javafx.scene.text.TextAlignment
 import wikimap.models.MindMapNode
 import tornadofx.*
+import wikimap.utils.DragResizeMod
 
 class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
 
-    val rect: Rectangle =
-        Rectangle(main.gridSpacing * model.width.toDouble(),
-                  main.gridSpacing * model.height.toDouble()).apply {
-            arcWidth = main.gridSpacing.toDouble()
-            arcHeight = main.gridSpacing.toDouble()
-            fill = Color(Math.random(), Math.random(), Math.random(), 0.7)
-        }
-
+    val onChange = ChangeEvent()
     val keyText = SimpleStringProperty(model.key)
+
+    private val isSelectedProperty = SimpleBooleanProperty(false)
+    var isSelected by isSelectedProperty
+
+    val rect: Rectangle =
+            Rectangle(main.gridSpacing * model.width.toDouble(),
+                    main.gridSpacing * model.height.toDouble()).apply {
+                arcWidth = main.gridSpacing.toDouble()
+                arcHeight = main.gridSpacing.toDouble()
+                fill = Color(Math.random(), Math.random(), Math.random(), 0.7)
+            }
+
     val label: Label = Label(model.key).apply {
         style {
             textFill = Color.WHITE
@@ -33,6 +40,7 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
         }
         textProperty().bind(keyText)
     }
+
     val textArea: TextArea = TextArea(model.key).apply {
         style {
             textFill = Color.WHITE
@@ -47,21 +55,21 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
         isVisible = false
     }
 
-    val onChange = ChangeEvent()
-
-    val spacing = main.gridSpacing
-    val grid = main.gridView
+    val selectedBorder = Border(BorderStroke(
+            Color.BLUE, BorderStrokeStyle.SOLID,
+            CornerRadii.EMPTY, BorderWidths(1.0)
+    ))
 
     private val resizeListener = object : DragResizeMod.OnDragResizeEventListener {
         override fun onResize(n: Node?, x: Double, y: Double, h: Double, w: Double) {
-            val (nx, ny) = grid.toGridCoords(x, y)
+            val (nx, ny) = main.gridView.toGridCoords(x, y)
 
             if (nx != model.x.toDouble()) {
                 val cx = Math.round(nx).toInt()
                 model.width = (model.x + model.width) - cx
                 model.x = cx
             } else {
-                model.width = Math.round(w / spacing).toInt()
+                model.width = Math.round(w / main.gridSpacing).toInt()
             }
 
             if (ny != model.y.toDouble()) {
@@ -69,13 +77,13 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
                 model.height = (model.y + model.height) - cy
                 model.y = cy
             } else {
-                model.height = Math.round(h / spacing).toInt()
+                model.height = Math.round(h / main.gridSpacing).toInt()
             }
             refresh()
         }
 
         override fun onDrag(n: Node?, x: Double, y: Double, h: Double, w: Double) {
-            val (nx, ny) = grid.toGridCoords(x, y)
+            val (nx, ny) = main.gridView.toGridCoords(x, y)
             model.x = Math.round(nx).toInt()
             model.y = Math.round(ny).toInt()
             refresh()
@@ -89,24 +97,41 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
         this += label
         this += textArea
 
-        keyText.onChange { if (it != null) model.key = it }
+        isSelectedProperty.onChange {
+            if (isSelected) {
+                border = selectedBorder
+            } else {
+                border = Border.EMPTY
+            }
+        }
 
-        label.onDoubleClick { showTextArea() }
-        textArea.focusedProperty().onChange { if (!it) hideTextArea() }
+        keyText.onChange {
+            if (it != null) model.key = it
+        }
 
-        rect.onDoubleClick { /* TODO: Add selection code */ }
+        label.onDoubleClick {
+            showTextArea()
+        }
+
+        textArea.focusedProperty().onChange {
+            if (!it) hideTextArea()
+        }
+
+        rect.onDoubleClick {
+            main.selectNodes(this)
+        }
 
         main.onChange += this::refresh
         refresh()
     }
 
-    fun getCenterX(): Double = grid.fromGridCoords(model.x + model.width/2.0, 0.0).first
-    fun getCenterY(): Double = grid.fromGridCoords(0.0, model.y + model.height/2.0).second
+    fun getCenterX(): Double = main.gridView.fromGridCoords(model.x + model.width/2.0, 0.0).first
+    fun getCenterY(): Double = main.gridView.fromGridCoords(0.0, model.y + model.height/2.0).second
 
     private fun refresh() {
-        val (x, y) = grid.fromGridCoords(model.x.toDouble(), model.y.toDouble())
-        rect.width = model.width.toDouble() * spacing
-        rect.height = model.height.toDouble() * spacing
+        val (x, y) = main.gridView.fromGridCoords(model.x.toDouble(), model.y.toDouble())
+        rect.width = model.width.toDouble() * main.gridSpacing
+        rect.height = model.height.toDouble() * main.gridSpacing
         relocate(x, y)
         setPrefSize(rect.width, rect.height)
 
