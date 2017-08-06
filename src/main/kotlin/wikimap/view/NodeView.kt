@@ -153,6 +153,9 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
         this += label
         this += textArea
 
+        main.nodePane += this
+        children.forEach { main.nodePane += it }
+
         keyText.onChange { if (it != null) model.key = it }
 
         label.onDoubleClick { showTextArea() }

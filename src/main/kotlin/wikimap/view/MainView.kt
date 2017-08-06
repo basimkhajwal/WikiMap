@@ -1,5 +1,7 @@
 package wikimap.view
 
+import javafx.scene.control.SplitPane
+import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import tornadofx.*
 import wikimap.models.MindMapModel
@@ -26,15 +28,20 @@ class MainView : View("WikiMap") {
     )
 
     val gridView = GridView(this)
-    val nodeView = NodeView(this, mindMap.root)
+    val nodePane = Pane()
 
-    override val root = StackPane(gridView, nodeView)
+    override val root = SplitPane(StackPane(gridView, nodePane), SelectionView())
 
     private fun refresh() {
         onChange.fireChange()
     }
 
     init {
+
+        NodeView(this, mindMap.root)
+
+        root.dividers.forEach { it.positionProperty().onChange { refresh() } }
+
         root.isFocusTraversable = true
         root.setOnMousePressed { root.requestFocus() }
 
