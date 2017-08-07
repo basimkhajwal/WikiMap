@@ -2,6 +2,7 @@ package wikimap.view
 
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
+import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.*
@@ -117,7 +118,7 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
             if (!it) hideTextArea()
         }
 
-        rect.onDoubleClick {
+        rect.onMouseClicked = EventHandler {
             main.selectNodes(this)
         }
 
