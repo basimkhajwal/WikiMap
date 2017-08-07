@@ -22,8 +22,6 @@ class KeyboardHandler : EventHandler<KeyEvent> {
         } else if (event.eventType == KeyEvent.KEY_RELEASED) {
             keyMap[event.code] = false
         }
-
-        event.consume()
     }
 
 
