@@ -4,9 +4,9 @@ import java.io.FileNotFoundException
 
 class BasicSuggestionProvider : SuggestionProvider{
     val seedUrl = "https://en.wikipedia.org"
-    val crawler = WebCrawler(seedUrl, 1)
 
     override fun getSuggestions(key:String):List<String>{
+        val crawler = WebCrawler(seedUrl, 1)
         val link = expandLink(key)
 
         var suggestedLinks:List<String>

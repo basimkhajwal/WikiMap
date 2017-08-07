@@ -22,6 +22,9 @@ class ConnectionView(val parent: NodeView, val child: NodeView): Pane() {
         }
 
         init {
+
+            this += line
+
             layoutBoundsProperty().onChange { refresh() }
 
             refresh()
