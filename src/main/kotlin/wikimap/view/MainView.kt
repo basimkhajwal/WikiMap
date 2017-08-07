@@ -53,7 +53,7 @@ class MainView : View("WikiMap") {
     var isRectangleSelect = false
 
     val mindMapView = StackPane(gridView, nodePane)
-    override val root = SplitPane(mindMapView, SelectionView())
+    override val root = SplitPane(mindMapView, SelectionView(this))
 
     init {
         createNodeTree(mindMap.root)
