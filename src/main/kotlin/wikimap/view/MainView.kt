@@ -114,7 +114,7 @@ class MainView : View("WikiMap") {
         }
     }
 
-    private fun refresh() {
+    fun refresh() {
         onChange.fireChange()
     }
 
