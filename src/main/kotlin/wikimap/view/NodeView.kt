@@ -16,7 +16,7 @@ import wikimap.models.MindMapNode
 import tornadofx.*
 import wikimap.utils.DragResizeMod
 
-class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
+class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boolean = false): StackPane() {
 
     val onChange = ChangeEvent()
     val keyText = SimpleStringProperty(model.key)
@@ -93,7 +93,7 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
     }
 
     constructor(main: MainView, model: MindMapNode, suggestionParent: NodeView)
-        : this(main, model) {
+        : this(main, model, true) {
 
         val totalOffsetX = model.x - suggestionParent.model.x
         val totalOffsetY = model.y - suggestionParent.model.y
@@ -104,12 +104,17 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
         val offsetY = totalOffsetY +
                 if (totalOffsetY < 0) model.height else -suggestionParent.model.height
 
-        rect.fill = Color(0.0, 0.0, 0.0, 0.3)
+        rect.fill = Color(0.0, 0.0, 0.0, 0.2)
 
-        addEventFilter(MouseEvent.MOUSE_CLICKED, { event ->
-            main.includeSuggestion(suggestionParent, this)
-            event.consume()
-        })
+        onHover {
+            if (it) {
+                rect.fill = Color(0.2, 0.2, 0.2, 0.2)
+            } else {
+                rect.fill = Color(0.0, 0.0, 0.0, 0.2)
+            }
+        }
+
+        onDoubleClick { main.includeSuggestion(suggestionParent, this) }
 
         suggestionParent.onChange += {
             model.x = suggestionParent.model.x + offsetX
@@ -126,8 +131,6 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
     }
 
     init {
-        DragResizeMod.makeResizable(this, resizeListener)
-
         this += rect
         this += label
         this += textArea
@@ -144,16 +147,20 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
             if (it != null) model.key = it
         }
 
-        label.onDoubleClick {
-            showTextArea()
-        }
-
         textArea.focusedProperty().onChange {
             if (!it) hideTextArea()
         }
 
-        onMouseClicked = EventHandler {
-            main.selectNodes(this)
+        DragResizeMod.makeResizable(this, resizeListener)
+
+        if (!isSuggestion) {
+            label.onDoubleClick {
+                showTextArea()
+            }
+
+            onMouseClicked = EventHandler {
+                main.selectNodes(this)
+            }
         }
 
         main.onChange += this::refresh

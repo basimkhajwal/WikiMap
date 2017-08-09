@@ -1,5 +1,6 @@
 package wikimap.view
 
+import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.control.SplitPane
@@ -113,7 +114,7 @@ class MainView : View("WikiMap") {
             removeSuggestions(selectedNodes[0])
         }
 
-        if (!keyboardHandler.isKeyDown(KeyCode.SHIFT)) {
+        if (!keyboardHandler.isKeyDown(KeyCode.SHIFT) && selectedNodes.isNotEmpty()) {
             for (node in selectedNodes) node.isSelected = false
             selectedNodes.clear()
         }
@@ -126,7 +127,9 @@ class MainView : View("WikiMap") {
         }
 
         if (selectedNodes.size == 1) {
-            showSuggestions(selectedNodes[0])
+            Platform.runLater {
+                showSuggestions(selectedNodes[0])
+            }
         }
     }
 
@@ -165,7 +168,8 @@ class MainView : View("WikiMap") {
         suggestionNodes.remove(suggestion)
         suggestion.removeFromParent()
 
-        createChild(parent.model, suggestion.model.copy(), false)
+        val child = createChild(parent.model, suggestion.model.copy(), false)
+        selectNodes(child)
     }
 
     fun refresh() {
@@ -192,7 +196,7 @@ class MainView : View("WikiMap") {
         return nodes.find { it.model == model }
     }
 
-    private fun createChild(parent: MindMapNode, childModel: MindMapNode, isSuggestion: Boolean) {
+    private fun createChild(parent: MindMapNode, childModel: MindMapNode, isSuggestion: Boolean): NodeView {
         val parentNode = findNode(parent)!!
         val childNode =
                 if (isSuggestion) NodeView(this, childModel, parentNode)
@@ -210,15 +214,16 @@ class MainView : View("WikiMap") {
 
         nodePane += conn
         nodePane += childNode
-
         refresh()
+
+        return childNode
     }
 
     private fun createChild(
-            parent: MindMapNode, dist: Double = 2.0,
+            parent: MindMapNode, dist: Double = 0.0,
             angle: Double = Math.random()*2*Math.PI,
             width:Int=6, height:Int=4,
-            key:String="test", isSuggestion: Boolean = false) {
+            key:String="test", isSuggestion: Boolean = false): NodeView {
 
         val centerDist = dist + (maxOf(width, height) + maxOf(parent.width, parent.height)) / Math.sqrt(2.0)
 
@@ -229,6 +234,6 @@ class MainView : View("WikiMap") {
 
         val childModel = MindMapNode(key, gridX - width/2, gridY - height/2, width, height)
 
-        createChild(parent, childModel, isSuggestion)
+        return createChild(parent, childModel, isSuggestion)
     }
 }

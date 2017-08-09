@@ -1,5 +1,6 @@
 package wikimap.view
 
+import javafx.application.Platform
 import javafx.geometry.Orientation
 import javafx.scene.control.Label
 import javafx.scene.control.ListView
@@ -166,9 +167,11 @@ class SelectionView(val main: MainView) : Pane() {
         val key = main.selectedNodes.first().keyText.get()
 
         if (key != oldKey) {
-            suggestionsList.items.clear()
-            suggestionsList.items.addAll(main.suggestionProvider.getSuggestions(key))
             oldKey = key
+            Platform.runLater {
+                suggestionsList.items.clear()
+                suggestionsList.items.addAll(main.suggestionProvider.getSuggestions(key))
+            }
         }
     }
 }
