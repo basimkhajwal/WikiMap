@@ -9,9 +9,7 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.VBox
 import tornadofx.*
-import wikimap.app.BasicSuggestionProvider
 import wikimap.utils.NumericTextField
-import wikimap.utils.SuggestionsCache
 
 /**
  * Created by Basim on 04/08/2017.
@@ -29,7 +27,6 @@ class SelectionView(val main: MainView) : Pane() {
 
     val suggestionsList = ListView<String>()
     private var oldKey = ""
-    val suggestionProvider = SuggestionsCache(BasicSuggestionProvider())
 
     val root = TitledPane("Edit Node", contentPane)
 
@@ -56,28 +53,28 @@ class SelectionView(val main: MainView) : Pane() {
 
         xLabel.valueProperty.onChange {
             if (!xLabel.isDisable) {
-                main.selectedNodes.forEach { it.model.x = xLabel.value.toInt() }
+                main.selectedNodes.forEach { it.model.x = xLabel.value }
                 main.refresh()
             }
         }
 
         yLabel.valueProperty.onChange {
             if (!yLabel.isDisable) {
-                main.selectedNodes.forEach { it.model.y = yLabel.value.toInt() }
+                main.selectedNodes.forEach { it.model.y = yLabel.value }
                 main.refresh()
             }
         }
 
         widthLabel.valueProperty.onChange {
             if (!widthLabel.isDisable) {
-                main.selectedNodes.forEach { it.model.width = widthLabel.value.toInt() }
+                main.selectedNodes.forEach { it.model.width = widthLabel.value }
                 main.refresh()
             }
         }
 
         heightLabel.valueProperty.onChange {
             if (!heightLabel.isDisable) {
-                main.selectedNodes.forEach { it.model.height = heightLabel.value.toInt() }
+                main.selectedNodes.forEach { it.model.height = heightLabel.value }
                 main.refresh()
             }
         }
@@ -170,7 +167,7 @@ class SelectionView(val main: MainView) : Pane() {
 
         if (key != oldKey) {
             suggestionsList.items.clear()
-            suggestionsList.items.addAll(suggestionProvider.getSuggestions(key))
+            suggestionsList.items.addAll(main.suggestionProvider.getSuggestions(key))
             oldKey = key
         }
     }

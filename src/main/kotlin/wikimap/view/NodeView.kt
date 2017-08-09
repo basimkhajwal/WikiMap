@@ -6,6 +6,7 @@ import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.*
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
@@ -91,6 +92,39 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
         }
     }
 
+    constructor(main: MainView, model: MindMapNode, suggestionParent: NodeView)
+        : this(main, model) {
+
+        val totalOffsetX = model.x - suggestionParent.model.x
+        val totalOffsetY = model.y - suggestionParent.model.y
+
+        val offsetX = totalOffsetX +
+                if (totalOffsetX < 0) model.width else -suggestionParent.model.width
+
+        val offsetY = totalOffsetY +
+                if (totalOffsetY < 0) model.height else -suggestionParent.model.height
+
+        rect.fill = Color(0.0, 0.0, 0.0, 0.3)
+
+        addEventFilter(MouseEvent.MOUSE_CLICKED, { event ->
+            main.includeSuggestion(suggestionParent, this)
+            event.consume()
+        })
+
+        suggestionParent.onChange += {
+            model.x = suggestionParent.model.x + offsetX
+            model.y = suggestionParent.model.y + offsetY
+
+            if (offsetX < 0) model.x -= model.width
+            else             model.x += suggestionParent.model.width
+
+            if (offsetY < 0) model.y -= model.height
+            else             model.y += suggestionParent.model.height
+
+            refresh()
+        }
+    }
+
     init {
         DragResizeMod.makeResizable(this, resizeListener)
 
@@ -118,7 +152,7 @@ class NodeView(val main: MainView, val model: MindMapNode): StackPane() {
             if (!it) hideTextArea()
         }
 
-        rect.onMouseClicked = EventHandler {
+        onMouseClicked = EventHandler {
             main.selectNodes(this)
         }
 
