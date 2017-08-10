@@ -60,18 +60,15 @@ class WebCrawler(val seedUrl:String, val maxDepth:Int){
     }
 
     fun extractIntro(articleName:String, rawPage:String, searchStartIndex:Int = 0):String{
-        val introStartIndex = rawPage.indexOf("<p>")
-        var introStopIndex = rawPage.indexOf("<div id=\"toctitle\"", introStartIndex + 1)
+        val queryStem = "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles="
+        val json = downloadPage(queryStem + articleName.replace(" ", "_"))
 
-        if (introStopIndex == -1){
-            introStopIndex = rawPage.indexOf("</p>", introStartIndex + 1)
-        }
+        val startString = "\"extract\":\""
 
-        var rawIntro = rawPage.slice(IntRange(introStartIndex, introStopIndex - 1))
+        val introStart = json.indexOf(startString)
+        val introStop = json.indexOf("</p>")
 
-        if (rawIntro.indexOf(articleName) == -1){
-            rawIntro =  extractIntro(articleName, rawPage, introStopIndex)
-        }
+        val rawIntro = json.substring(introStart + startString.length, introStop)
 
         return rawIntro
     }
