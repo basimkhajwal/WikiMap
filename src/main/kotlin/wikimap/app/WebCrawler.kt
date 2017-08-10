@@ -13,7 +13,7 @@ class WebCrawler(val seedUrl:String, val maxDepth:Int){
             crawledUrls.add(currentUrl)
             println(currentUrl + " " + depth)
             val rawPage = downloadPage(currentUrl)
-            val intro = extractIntro(rawPage)
+            val intro = extractIntro(getArticleNameFromUrl(currentUrl), rawPage)
 
             val introLinks = extractLinks(intro)
 
@@ -40,6 +40,11 @@ class WebCrawler(val seedUrl:String, val maxDepth:Int){
         return resultLinks
     }
 
+    fun getArticleNameFromUrl(url:String):String{
+        val startIndex = url.indexOf("/wiki/") + "/wiki/".length
+        return url.substring(startIndex).replace("_", " ")
+    }
+
     fun extractSearchResultsLinks(fullPage:String):List<String>{
         val resultsStart = fullPage.indexOf("<ul class='mw-search-results'>")
         val resultsEnd = fullPage.indexOf("</ul>", resultsStart + 1)
@@ -54,7 +59,7 @@ class WebCrawler(val seedUrl:String, val maxDepth:Int){
         return url.readText()
     }
 
-    fun extractIntro(rawPage:String):String{
+    fun extractIntro(articleName:String, rawPage:String, searchStartIndex:Int = 0):String{
         val introStartIndex = rawPage.indexOf("<p>")
         var introStopIndex = rawPage.indexOf("<div id=\"toctitle\"", introStartIndex + 1)
 
@@ -62,7 +67,12 @@ class WebCrawler(val seedUrl:String, val maxDepth:Int){
             introStopIndex = rawPage.indexOf("</p>", introStartIndex + 1)
         }
 
-        val rawIntro = rawPage.slice(IntRange(introStartIndex, introStopIndex - 1))
+        var rawIntro = rawPage.slice(IntRange(introStartIndex, introStopIndex - 1))
+
+        if (rawIntro.indexOf(articleName) == -1){
+            rawIntro =  extractIntro(articleName, rawPage, introStopIndex)
+        }
+
         return rawIntro
     }
 
@@ -99,4 +109,9 @@ class WebCrawler(val seedUrl:String, val maxDepth:Int){
             return (!link.contains("https://") || link.contains(seedUrl))
         }
     }
+}
+
+fun main(args:Array<String>){
+    var crawler = WebCrawler("https://en.wikipedia.org", 1)
+    print(crawler.crawl("https://en.wikipedia.org/iki/Egypt", 0))
 }
