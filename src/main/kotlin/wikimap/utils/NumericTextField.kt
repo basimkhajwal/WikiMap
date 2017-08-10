@@ -1,25 +1,43 @@
 package wikimap.utils
 
+import javafx.application.Platform
+import javafx.beans.property.SimpleIntegerProperty
 import javafx.scene.control.TextField
 import javafx.scene.input.KeyEvent
+import tornadofx.*
 
 /**
  * Created by Basim on 07/08/2017.
  */
-class NumericTextField(val forceInt: Boolean = true) : TextField(if (forceInt) "0" else "0.0"){
+class NumericTextField : TextField(""){
+
+    val valueProperty = SimpleIntegerProperty()
+    var value by valueProperty
+
+    private var inSync = false
 
     init {
+
+        promptText = "..."
+
+        addEventFilter(KeyEvent.KEY_TYPED, { inSync = false })
+
         textProperty().addListener { _, oldValue, newValue ->
-            if (newValue.isEmpty()) {
-                text = if (forceInt) "0" else "0.0"
-            } else if (!isValid(newValue)) {
-                text = oldValue
+            if (!inSync && isValid(newValue)) {
+                inSync = true
+                value = newValue.toIntOrNull() ?: 0
+            }
+        }
+
+        valueProperty.onChange {
+            if (!inSync || value != text.toIntOrNull() ?: 0) {
+                inSync = true
+                text = value.toString()
             }
         }
     }
 
     private fun isValid(str: String): Boolean {
-        if (forceInt) return str.toIntOrNull() != null
-        return str.toDoubleOrNull() != null
+        return str.isEmpty() || str.toIntOrNull() != null
     }
 }

@@ -30,5 +30,6 @@ class ConnectionView(val parent: NodeView, val child: NodeView): Pane() {
             refresh()
             parent.onChange += this::refresh
             child.onChange += this::refresh
+            parent.main.onChange += this::refresh
         }
     }

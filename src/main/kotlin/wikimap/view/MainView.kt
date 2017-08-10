@@ -1,6 +1,8 @@
 package wikimap.view
 
+import javafx.application.Platform
 import javafx.event.EventHandler
+import javafx.scene.Node
 import javafx.scene.control.SplitPane
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
@@ -12,6 +14,8 @@ import tornadofx.*
 import wikimap.models.MindMapModel
 import wikimap.models.MindMapNode
 import wikimap.utils.KeyboardHandler
+import wikimap.utils.SuggestionsCache
+import wikimap.app.BasicSuggestionProvider
 
 /**
  * The main view of the application
@@ -19,6 +23,7 @@ import wikimap.utils.KeyboardHandler
 class MainView : View("WikiMap") {
 
     val onChange = ChangeEvent()
+    val suggestionProvider = SuggestionsCache(BasicSuggestionProvider())
 
     val gridSpacing: Int = 20
 
@@ -38,6 +43,8 @@ class MainView : View("WikiMap") {
 
     val nodes = mutableListOf<NodeView>()
     val nodeConnections = mutableListOf<ConnectionView>()
+
+    val suggestionNodes = mutableListOf<NodeView>()
 
     val selectedNodes = mutableListOf<NodeView>().observable()
 
@@ -84,7 +91,7 @@ class MainView : View("WikiMap") {
             rectangleSelect.height = maxOf(event.y, clickY) - rectangleSelect.y
         }
 
-        mindMapView.onMouseReleased = EventHandler { event ->
+        mindMapView.onMouseReleased = EventHandler {
             if (rectangleSelect.isVisible) {
                 rectangleSelect.isVisible = false
 
@@ -103,18 +110,69 @@ class MainView : View("WikiMap") {
     }
 
     fun selectNodes(vararg ns: NodeView) {
-        if (!keyboardHandler.isKeyDown(KeyCode.SHIFT)) {
+        if (selectedNodes.size == 1) {
+            removeSuggestions(selectedNodes[0])
+        }
+
+        if (!keyboardHandler.isKeyDown(KeyCode.SHIFT) && selectedNodes.isNotEmpty()) {
             for (node in selectedNodes) node.isSelected = false
             selectedNodes.clear()
         }
 
         for (node in ns) {
-            node.isSelected = true
-            selectedNodes += node
+            if (!node.isSelected) {
+                node.isSelected = true
+                selectedNodes += node
+            }
+        }
+
+        if (selectedNodes.size == 1) {
+            Platform.runLater {
+                showSuggestions(selectedNodes[0])
+            }
         }
     }
 
-    private fun refresh() {
+    fun showSuggestions(parent: NodeView) {
+        val suggestions = suggestionProvider.getSuggestions(parent.keyText.get())
+
+        if (suggestions.size > 0) {
+            createChild(parent.model, key = suggestions[0], angle = 0.0, isSuggestion = true)
+        }
+
+        if (suggestions.size > 1) {
+            createChild(parent.model, key = suggestions[1], angle = 120.0, isSuggestion = true)
+        }
+
+        if (suggestions.size > 2) {
+            createChild(parent.model, key = suggestions[2], angle = 240.0, isSuggestion = true)
+        }
+    }
+
+    fun removeSuggestions(parent: NodeView) {
+        val toRemove = nodeConnections.filter { it.parent == parent && suggestionNodes.contains(it.child) }
+
+        nodeConnections.removeAll(toRemove)
+        toRemove.forEach {
+            it.removeFromParent()
+            it.child.removeFromParent()
+            suggestionNodes.remove(it.child)
+        }
+    }
+
+    fun includeSuggestion(parent: NodeView, suggestion: NodeView) {
+        val conn = nodeConnections.find { it.child == suggestion } !!
+        conn.removeFromParent()
+        nodeConnections.remove(conn)
+
+        suggestionNodes.remove(suggestion)
+        suggestion.removeFromParent()
+
+        val child = createChild(parent.model, suggestion.model.copy(), false)
+        selectNodes(child)
+    }
+
+    fun refresh() {
         onChange.fireChange()
     }
 
@@ -138,25 +196,44 @@ class MainView : View("WikiMap") {
         return nodes.find { it.model == model }
     }
 
-    private fun createChild(parent: MindMapNode, dist: Double = 3.0, angle: Double = Math.random()*2*Math.PI, width:Int=6, height:Int=4, key:String="test") {
-
+    private fun createChild(parent: MindMapNode, childModel: MindMapNode, isSuggestion: Boolean): NodeView {
         val parentNode = findNode(parent)!!
-        val centerDist = dist + (maxOf(width, height) + maxOf(parentNode.width, parentNode.height)) / Math.sqrt(2.0)
+        val childNode =
+                if (isSuggestion) NodeView(this, childModel, parentNode)
+                else NodeView(this, childModel)
 
-        val centerX = parentNode.getCenterX() + centerDist * Math.cos(angle)
-        val centerY = parentNode.getCenterY() + centerDist * Math.sin(angle)
-        var (gridX, gridY) = gridView.toGridCoords(centerX, centerY)
-        gridX = if (Math.cos(angle) < 0) Math.floor(gridX) else Math.ceil(gridX)
-        gridY = if (Math.sin(angle) < 0) Math.floor(gridY) else Math.ceil(gridY)
-
-        val childModel = MindMapNode(key, gridX.toInt() - width/2, gridY.toInt() - height/2, width, height)
-        val childNode = NodeView(this, childModel)
         val conn = ConnectionView(parentNode, childNode)
-
-        parent.children += childModel
-        nodes += childNode
         nodeConnections += conn
 
+        if (isSuggestion) {
+            suggestionNodes += childNode
+        } else {
+            parent.children += childModel
+            nodes += childNode
+        }
+
+        nodePane += conn
+        nodePane += childNode
         refresh()
+
+        return childNode
+    }
+
+    private fun createChild(
+            parent: MindMapNode, dist: Double = 0.0,
+            angle: Double = Math.random()*2*Math.PI,
+            width:Int=6, height:Int=4,
+            key:String="test", isSuggestion: Boolean = false): NodeView {
+
+        val centerDist = dist + (maxOf(width, height) + maxOf(parent.width, parent.height)) / Math.sqrt(2.0)
+
+        val centerX = parent.x + parent.width/2.0 + centerDist * Math.cos(angle)
+        val centerY = parent.y + parent.height/2.0 + centerDist * Math.sin(angle)
+        val gridX = if (Math.cos(angle) < 0) Math.floor(centerX).toInt() else Math.ceil(centerX).toInt()
+        val gridY = if (Math.sin(angle) < 0) Math.floor(centerY).toInt() else Math.ceil(centerY).toInt()
+
+        val childModel = MindMapNode(key, gridX - width/2, gridY - height/2, width, height)
+
+        return createChild(parent, childModel, isSuggestion)
     }
 }
