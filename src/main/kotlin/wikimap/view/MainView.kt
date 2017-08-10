@@ -2,12 +2,13 @@ package wikimap.view
 
 import javafx.application.Platform
 import javafx.event.EventHandler
-import javafx.scene.Node
 import javafx.scene.control.SplitPane
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
+import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
+import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import tornadofx.*
@@ -27,8 +28,7 @@ class MainView : View("WikiMap") {
 
     val gridSpacing: Int = 20
 
-    /* Fixed for now, but can be changed later */
-    val mindMap = MindMapModel(
+    var mindMap = MindMapModel(
         MindMapNode("Machine Learning", -3, -2, 6, 4,
             mutableListOf(
                 MindMapNode("Deep Learning", -9, 1, 5, 3),
@@ -38,8 +38,8 @@ class MainView : View("WikiMap") {
         )
     )
 
-    val gridView = GridView(this)
     val nodePane = Pane()
+    val gridView = GridView(this)
 
     val nodes = mutableListOf<NodeView>()
     val nodeConnections = mutableListOf<ConnectionView>()
@@ -57,16 +57,14 @@ class MainView : View("WikiMap") {
         stroke = Color.DARKGRAY
         isVisible = false
     }
-    var isRectangleSelect = false
 
     val mindMapView = StackPane(gridView, nodePane)
-    override val root = SplitPane(mindMapView, SelectionView(this))
+    val splitPane = SplitPane(mindMapView, SelectionView(this))
+    override val root = BorderPane(splitPane, MenuBarView(this), null, null, null)
 
     init {
-        createNodeTree(mindMap.root)
-
-        root.addEventFilter(KeyEvent.ANY, keyboardHandler)
-        root.dividers.forEach { it.positionProperty().onChange { refresh() } }
+        splitPane.addEventFilter(KeyEvent.ANY, keyboardHandler)
+        splitPane.dividers.forEach { it.positionProperty().onChange { refresh() } }
 
         nodePane += rectangleSelect
 
@@ -106,6 +104,25 @@ class MainView : View("WikiMap") {
 
         currentWindow?.widthProperty()?.onChange { refresh() }
         currentWindow?.heightProperty()?.onChange { refresh() }
+
+        loadModel(mindMap)
+    }
+
+    fun loadModel(model: MindMapModel) {
+
+        selectedNodes.clear()
+
+        nodes.forEach { it.removeFromParent() }
+        nodes.clear()
+
+        suggestionNodes.forEach { it.removeFromParent() }
+        suggestionNodes.clear()
+
+        nodeConnections.forEach { it.removeFromParent() }
+        nodeConnections.clear()
+
+        mindMap = model
+        createNodeTree(mindMap.root)
         refresh()
     }
 
