@@ -65,22 +65,27 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
     private val resizeListener = object : DragResizeMod.OnDragResizeEventListener {
         override fun onResize(n: Node?, x: Double, y: Double, h: Double, w: Double) {
             val (nx, ny) = main.gridView.toGridCoords(x, y)
+            val cx = Math.round(nx).toInt()
+            val cy = Math.round(ny).toInt()
 
             if (nx != model.x.toDouble()) {
-                val cx = Math.round(nx).toInt()
                 model.width = (model.x + model.width) - cx
-                model.x = cx
             } else {
                 model.width = Math.round(w / main.gridSpacing).toInt()
             }
 
             if (ny != model.y.toDouble()) {
-                val cy = Math.round(ny).toInt()
                 model.height = (model.y + model.height) - cy
-                model.y = cy
             } else {
                 model.height = Math.round(h / main.gridSpacing).toInt()
             }
+
+            model.x = cx
+            model.y = cy
+
+            model.width = maxOf(3, model.width)
+            model.height = maxOf(3, model.height)
+
             refresh()
         }
 
