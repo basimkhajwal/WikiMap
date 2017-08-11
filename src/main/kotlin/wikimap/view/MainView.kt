@@ -8,7 +8,6 @@ import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
-import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import tornadofx.*
@@ -17,6 +16,7 @@ import wikimap.models.MindMapNode
 import wikimap.utils.KeyboardHandler
 import wikimap.utils.SuggestionsCache
 import wikimap.app.BasicSuggestionProvider
+import wikimap.utils.UpdateEvent
 
 /**
  * The main view of the application
@@ -38,17 +38,14 @@ class MainView : View("WikiMap") {
         )
     )
 
+    val keyboardHandler = KeyboardHandler()
     val nodePane = Pane()
-    val gridView = GridView(this)
+    val gridView: GridView by inject()
 
     val nodes = mutableListOf<NodeView>()
-    val nodeConnections = mutableListOf<ConnectionView>()
-
     val suggestionNodes = mutableListOf<NodeView>()
-
     val selectedNodes = mutableListOf<NodeView>().observable()
-
-    val keyboardHandler = KeyboardHandler()
+    val nodeConnections = mutableListOf<ConnectionView>()
 
     var clickX = 0.0
     var clickY = 0.0
@@ -58,13 +55,12 @@ class MainView : View("WikiMap") {
         isVisible = false
     }
 
-    val mindMapView = StackPane(gridView, nodePane)
-    val splitPane = SplitPane(mindMapView, SelectionView(this))
-    override val root = BorderPane(splitPane, MenuBarView(this), null, null, null)
+    val mindMapView = StackPane(gridView.root, nodePane, NodeEditView(this))
+
+    override val root = BorderPane(mindMapView, MenuBarView(this), null, null, null)
 
     init {
-        splitPane.addEventFilter(KeyEvent.ANY, keyboardHandler)
-        splitPane.dividers.forEach { it.positionProperty().onChange { refresh() } }
+        root.addEventFilter(KeyEvent.ANY, keyboardHandler)
 
         nodePane += rectangleSelect
 
@@ -190,6 +186,7 @@ class MainView : View("WikiMap") {
     }
 
     fun refresh() {
+        fire(UpdateEvent)
         onChange.fireChange()
     }
 

@@ -1,33 +1,39 @@
 package wikimap.view
 
+import javafx.scene.Parent
 import javafx.scene.canvas.Canvas
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
 import tornadofx.*
+import wikimap.utils.UpdateEvent
 
 /**
  * Created by Basim on 04/08/2017.
  */
-class GridView(main: MainView) : Pane() {
-    private val canvas = Canvas(800.0, 600.0)
-    private val g2d = canvas.graphicsContext2D
-    private val spacing = main.gridSpacing
+class GridView : View() {
+
+    val canvas = Canvas(800.0, 600.0)
+    val spacing = 20
+
+    override val root = Pane(canvas)
 
     init {
-        this += canvas
-        main.onChange += this::refresh
+        subscribe<UpdateEvent> {
+            refresh()
+        }
     }
 
-    fun refresh() {
+    private fun refresh() {
 
-        val bounds = parent.layoutBounds
-        width = bounds.width
-        height = bounds.height
+        val width = root.parent.layoutBounds.width
+        val height = root.parent.layoutBounds.height
 
-        canvas.resizeRelocate(0.0, 0.0, width, height)
+        root.resize(width, height)
+        canvas.resize(width, height)
         canvas.width = width
         canvas.height = height
 
+        val g2d = canvas.graphicsContext2D
         val hw = width/2
         val hh = height/2
         val xRange = Math.floor(width / spacing).toInt() + 1
@@ -46,10 +52,10 @@ class GridView(main: MainView) : Pane() {
     }
 
     fun fromGridCoords(x: Double, y: Double): Pair<Double, Double> {
-        return Pair(x*spacing + width/2, y*spacing + height/2)
+        return Pair(x*spacing + canvas.width/2, y*spacing+ canvas.height/2)
     }
 
     fun toGridCoords(x: Double, y: Double): Pair<Double, Double> {
-        return Pair((x - width/2) / spacing, (y - height/2) / spacing)
+        return Pair((x - canvas.width/2) / spacing, (y - canvas.height/2) / spacing)
     }
 }
