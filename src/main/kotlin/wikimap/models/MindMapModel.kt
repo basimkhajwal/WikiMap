@@ -1,11 +1,5 @@
 package wikimap.models
 
-import java.io.ByteArrayInputStream
-import java.io.Serializable
-import java.io.StreamTokenizer
-import java.util.*
-import java.util.regex.Pattern
-
 /**
  * Created by Basim on 01/08/2017.
  */
