@@ -2,20 +2,23 @@ package wikimap.view
 
 import javafx.application.Platform
 import javafx.geometry.Orientation
+import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.control.ListView
 import javafx.scene.control.TitledPane
 import javafx.scene.control.cell.TextFieldListCell
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Pane
+import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
+import javafx.scene.text.TextAlignment
 import tornadofx.*
 import wikimap.utils.NumericTextField
 
 /**
  * Created by Basim on 04/08/2017.
  */
-class SelectionView(val main: MainView) : Pane() {
+class NodeEditView(val main: MainView) : StackPane() {
 
     val contentPane = VBox()
 
@@ -32,6 +35,15 @@ class SelectionView(val main: MainView) : Pane() {
     val root = TitledPane("Edit Node", contentPane)
 
     init {
+        this.alignment = Pos.CENTER_RIGHT
+
+        root.alignment = Pos.CENTER_RIGHT
+        root.textAlignment = TextAlignment.CENTER
+        root.maxWidth = 300.0
+        root.paddingTop = 50.0
+        root.paddingBottom = 50.0
+        root.paddingRight = 50.0
+
         contentPane.label("Node Properties")
 
         propertiesGrid.hgap = 5.0
@@ -85,11 +97,6 @@ class SelectionView(val main: MainView) : Pane() {
         suggestionsList.orientation = Orientation.VERTICAL
         suggestionsList.cellFactory = TextFieldListCell.forListView()
         contentPane += suggestionsList
-
-        this.layoutBoundsProperty().onChange {
-            root.prefWidth = layoutBounds.width
-            root.prefHeight = layoutBounds.height
-        }
 
         root.isCollapsible = false
         this += root
