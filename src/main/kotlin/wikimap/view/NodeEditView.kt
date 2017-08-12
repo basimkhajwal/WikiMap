@@ -8,7 +8,6 @@ import javafx.scene.control.ListView
 import javafx.scene.control.TitledPane
 import javafx.scene.control.cell.TextFieldListCell
 import javafx.scene.layout.GridPane
-import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.text.TextAlignment

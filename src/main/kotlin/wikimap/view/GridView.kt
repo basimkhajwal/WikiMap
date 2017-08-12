@@ -4,7 +4,6 @@ import javafx.scene.canvas.Canvas
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
 import tornadofx.*
-import wikimap.utils.UpdateEvent
 
 /**
  * Created by Basim on 04/08/2017.
@@ -17,18 +16,13 @@ class GridView : View() {
     override val root = Pane(canvas)
 
     init {
-        subscribe<UpdateEvent> {
-            refresh()
-        }
+        root.layoutBoundsProperty().onChange { draw() }
     }
 
-    private fun refresh() {
+    private fun draw() {
 
-        val width = root.parent.layoutBounds.width
-        val height = root.parent.layoutBounds.height
-
-        root.resize(width, height)
-        canvas.resize(width, height)
+        val width = root.layoutBounds.width
+        val height = root.layoutBounds.height
         canvas.width = width
         canvas.height = height
 

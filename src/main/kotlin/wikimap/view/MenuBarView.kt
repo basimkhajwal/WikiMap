@@ -11,45 +11,51 @@ import java.nio.file.StandardOpenOption
 /**
  * Created by Basim on 09/08/2017.
  */
-class MenuBarView(val main: MainView) : MenuBar() {
+class MenuBarView : View() {
 
-    var file: File? = null
+    private var file: File? = null
+
+    val main: MainView by param()
+
+    override val root = MenuBar()
 
     init {
-        menu("File") {
-            item("Open") {
-                action {
-                    file = FileChooser().showOpenDialog(main.currentWindow)
-                    loadFromFile()
-                }
-            }
-
-            item("Save") {
-                action {
-                    if (file == null) {
-                        file = FileChooser().showSaveDialog(main.currentWindow)
+        with(root) {
+            menu("File") {
+                item("Open") {
+                    action {
+                        file = FileChooser().showOpenDialog(currentWindow)
+                        loadFromFile()
                     }
-                    saveToFile()
                 }
-            }
 
-            item("Save As") {
-                action {
-                    file = FileChooser().showSaveDialog(main.currentWindow)
-                    saveToFile()
+                item("Save") {
+                    action {
+                        if (file == null) {
+                            file = FileChooser().showSaveDialog(currentWindow)
+                        }
+                        saveToFile()
+                    }
+                }
+
+                item("Save As") {
+                    action {
+                        file = FileChooser().showSaveDialog(currentWindow)
+                        saveToFile()
+                    }
                 }
             }
         }
     }
 
-    fun loadFromFile() {
+    private fun loadFromFile() {
         val fileContents = String(Files.readAllBytes(file!!.toPath()))
         val model = MindMap.deserialize(fileContents)
 
         main.loadModel(model)
     }
 
-    fun saveToFile() {
+    private fun saveToFile() {
         val fileData = main.mindMap.serialize().toByteArray()
         Files.write(file!!.toPath(), fileData, StandardOpenOption.CREATE_NEW)
     }

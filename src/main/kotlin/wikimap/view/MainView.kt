@@ -39,7 +39,6 @@ class MainView : View("WikiMap") {
 
     val keyboardHandler = KeyboardHandler()
     val nodePane = Pane()
-    val gridView: GridView by inject()
 
     val nodes = mutableListOf<NodeView>()
     val suggestionNodes = mutableListOf<NodeView>()
@@ -54,9 +53,12 @@ class MainView : View("WikiMap") {
         isVisible = false
     }
 
+    val gridView: GridView by inject()
+    val menuBarView: MenuBarView = find(mapOf("main" to this))
+
     val mindMapView = StackPane(gridView.root, nodePane, NodeEditView(this))
 
-    override val root = BorderPane(mindMapView, MenuBarView(this), null, null, null)
+    override val root = BorderPane(mindMapView, menuBarView.root, null, null, null)
 
     init {
         root.addEventFilter(KeyEvent.ANY, keyboardHandler)
@@ -196,9 +198,11 @@ class MainView : View("WikiMap") {
 
         for (child in node.children) {
             val childView = createNodeTree(child)
-            val conn = ConnectionView(nodeView, childView)
+            val conn = find<ConnectionView>(
+                mapOf("parent" to nodeView, "child" to childView)
+            ) //ConnectionView(nodeView, childView)
 
-            nodePane += conn
+            nodePane += conn.root
             nodeConnections += conn
         }
 
@@ -215,7 +219,7 @@ class MainView : View("WikiMap") {
                 if (isSuggestion) NodeView(this, childModel, parentNode)
                 else NodeView(this, childModel)
 
-        val conn = ConnectionView(parentNode, childNode)
+        val conn = find<ConnectionView>(mapOf("parent" to parentNode, "child" to childNode))
         nodeConnections += conn
 
         if (isSuggestion) {
@@ -225,7 +229,7 @@ class MainView : View("WikiMap") {
             nodes += childNode
         }
 
-        nodePane += conn
+        nodePane += conn.root
         nodePane += childNode
         refresh()
 
