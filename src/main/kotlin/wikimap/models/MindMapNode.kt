@@ -1,27 +1,5 @@
 package wikimap.models
 
-/**
- * Created by Basim on 01/08/2017.
- */
-data class MindMapModel(
-    var root: MindMapNode
-) {
-
-    fun serialize(): String {
-        return root.serialize()
-    }
-
-    companion object {
-
-        fun deserialize(str: String): MindMapModel {
-            return MindMapModel(MindMapNode.deserialize(str))
-        }
-    }
-}
-
-/**
- * A single element of a MindMap
- */
 data class MindMapNode(
     var key: String,
     var x: Int, var y: Int,

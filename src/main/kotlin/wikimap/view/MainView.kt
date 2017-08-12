@@ -2,7 +2,6 @@ package wikimap.view
 
 import javafx.application.Platform
 import javafx.event.EventHandler
-import javafx.scene.control.SplitPane
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
@@ -11,7 +10,7 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import tornadofx.*
-import wikimap.models.MindMapModel
+import wikimap.models.MindMap
 import wikimap.models.MindMapNode
 import wikimap.utils.KeyboardHandler
 import wikimap.utils.SuggestionsCache
@@ -28,7 +27,7 @@ class MainView : View("WikiMap") {
 
     val gridSpacing: Int = 20
 
-    var mindMap = MindMapModel(
+    var mindMap = MindMap(
         MindMapNode("Machine Learning", -3, -2, 6, 4,
             mutableListOf(
                 MindMapNode("Deep Learning", -9, 1, 5, 3),
@@ -104,7 +103,7 @@ class MainView : View("WikiMap") {
         loadModel(mindMap)
     }
 
-    fun loadModel(model: MindMapModel) {
+    fun loadModel(model: MindMap) {
 
         selectedNodes.clear()
 

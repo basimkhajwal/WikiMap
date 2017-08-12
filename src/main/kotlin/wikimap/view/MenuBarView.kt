@@ -3,7 +3,7 @@ package wikimap.view
 import javafx.scene.control.MenuBar
 import javafx.stage.FileChooser
 import tornadofx.*
-import wikimap.models.MindMapModel
+import wikimap.models.MindMap
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -44,7 +44,7 @@ class MenuBarView(val main: MainView) : MenuBar() {
 
     fun loadFromFile() {
         val fileContents = String(Files.readAllBytes(file!!.toPath()))
-        val model = MindMapModel.deserialize(fileContents)
+        val model = MindMap.deserialize(fileContents)
 
         main.loadModel(model)
     }
