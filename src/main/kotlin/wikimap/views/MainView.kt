@@ -15,6 +15,7 @@ import wikimap.models.MindMapNode
 import wikimap.utils.KeyboardHandler
 import wikimap.utils.SuggestionsCache
 import wikimap.app.BasicSuggestionProvider
+import wikimap.controllers.MindMapController
 import wikimap.utils.UpdateEvent
 
 /**
@@ -25,19 +26,6 @@ class MainView : View("WikiMap") {
     val onChange = ChangeEvent()
     val suggestionProvider = SuggestionsCache(BasicSuggestionProvider())
 
-    val gridSpacing: Int = 20
-
-    var mindMap = MindMap(
-        MindMapNode("Machine Learning", -3, -2, 6, 4,
-            mutableListOf(
-                MindMapNode("Deep Learning", -9, 1, 5, 3),
-                MindMapNode("Artificial Intelligence", -8, -6, 5, 3),
-                MindMapNode("Neural Networks", 6, 4, 5, 4)
-            )
-        )
-    )
-
-    val keyboardHandler = KeyboardHandler()
     val nodePane = Pane()
 
     val nodes = mutableListOf<NodeView>()
@@ -53,15 +41,17 @@ class MainView : View("WikiMap") {
         isVisible = false
     }
 
+    val controller: MindMapController by inject()
+
     val gridView: GridView by inject()
-    val menuBarView: MenuBarView = find(mapOf("main" to this))
+    val menuBarView: MenuBarView by inject()
 
     val mindMapView = StackPane(gridView.root, nodePane, NodeEditView(this))
 
     override val root = BorderPane(mindMapView, menuBarView.root, null, null, null)
 
     init {
-        root.addEventFilter(KeyEvent.ANY, keyboardHandler)
+        root.addEventFilter(KeyEvent.ANY, controller.keyboardHandler)
 
         nodePane += rectangleSelect
 
@@ -101,8 +91,6 @@ class MainView : View("WikiMap") {
 
         currentWindow?.widthProperty()?.onChange { refresh() }
         currentWindow?.heightProperty()?.onChange { refresh() }
-
-        loadModel(mindMap)
     }
 
     fun loadModel(model: MindMap) {

@@ -1,11 +1,15 @@
 package wikimap.models
 
+import javafx.beans.property.SimpleObjectProperty
+import tornadofx.*
+
 /**
  * Created by Basim on 01/08/2017.
  */
-data class MindMap(
-    var root: MindMapNode
-) {
+class MindMap(root: MindMapNode) {
+
+    val rootProperty = SimpleObjectProperty(root)
+    var root by rootProperty
 
     fun serialize(): String {
         return root.serialize()

@@ -1,11 +1,30 @@
 package wikimap.models
 
-data class MindMapNode(
-    var key: String,
-    var x: Int, var y: Int,
-    var width: Int, var height: Int,
-    val children: MutableList<MindMapNode> = mutableListOf()
+import javafx.beans.property.SimpleIntegerProperty
+import javafx.beans.property.SimpleStringProperty
+import tornadofx.*
+
+class MindMapNode(
+    key: String, x: Int, y: Int, width: Int, height: Int,
+    children: MutableList<MindMapNode> = mutableListOf()
 ) {
+
+    val keyProperty = SimpleStringProperty(key)
+    var key by keyProperty
+
+    val xProperty = SimpleIntegerProperty(x)
+    var x by xProperty
+
+    val yProperty = SimpleIntegerProperty(y)
+    var y by yProperty
+
+    val widthProperty = SimpleIntegerProperty(width)
+    var width by widthProperty
+
+    val heightProperty = SimpleIntegerProperty(height)
+    var height by heightProperty
+
+    val children = children.observable()
 
     fun serialize(depth: Int = 0): String {
         return join(getDepthKey(depth),
@@ -13,6 +32,8 @@ data class MindMapNode(
             *children.map { it.serialize(depth + 1) }.toTypedArray()
         )
     }
+
+    fun copy() = MindMapNode(key, x, y, width, height, children)
 
     companion object {
 
