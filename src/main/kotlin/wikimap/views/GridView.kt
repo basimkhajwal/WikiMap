@@ -4,19 +4,22 @@ import javafx.scene.canvas.Canvas
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
 import tornadofx.*
+import wikimap.controllers.MindMapController
 
 /**
  * Created by Basim on 04/08/2017.
  */
 class GridView : View() {
 
-    val canvas = Canvas(800.0, 600.0)
-    val spacing = 20
+    val controller: MindMapController by inject()
+    private var spacing by controller.gridSpacingProperty
 
+    val canvas = Canvas(800.0, 600.0)
     override val root = Pane(canvas)
 
     init {
         root.layoutBoundsProperty().onChange { draw() }
+        controller.gridSpacingProperty.onChange { draw() }
     }
 
     private fun draw() {
@@ -45,7 +48,7 @@ class GridView : View() {
     }
 
     fun fromGridCoords(x: Double, y: Double): Pair<Double, Double> {
-        return Pair(x*spacing + canvas.width/2, y*spacing+ canvas.height/2)
+        return Pair(x*spacing + canvas.width/2, y*spacing + canvas.height/2)
     }
 
     fun toGridCoords(x: Double, y: Double): Pair<Double, Double> {
