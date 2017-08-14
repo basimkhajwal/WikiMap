@@ -1,6 +1,5 @@
 package wikimap.utils
 
-import javafx.application.Platform
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.scene.control.TextField
 import javafx.scene.input.KeyEvent
@@ -22,7 +21,7 @@ class NumericTextField : TextField(""){
 
         addEventFilter(KeyEvent.KEY_TYPED, { inSync = false })
 
-        textProperty().addListener { _, oldValue, newValue ->
+        textProperty().addListener { _, _, newValue ->
             if (!inSync && isValid(newValue)) {
                 inSync = true
                 value = newValue.toIntOrNull() ?: 0
