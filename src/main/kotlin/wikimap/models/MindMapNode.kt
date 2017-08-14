@@ -1,5 +1,6 @@
 package wikimap.models
 
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleStringProperty
 import tornadofx.*
@@ -23,6 +24,15 @@ class MindMapNode(
 
     val heightProperty = SimpleIntegerProperty(height)
     var height by heightProperty
+
+    val suggestionProperty = SimpleBooleanProperty(false)
+    var isSuggestion by suggestionProperty
+
+    val selectedProperty = SimpleBooleanProperty(false)
+    var isSelected by selectedProperty
+
+    val editingProperty = SimpleBooleanProperty(false)
+    var isEditing by editingProperty
 
     val children = children.observable()
 

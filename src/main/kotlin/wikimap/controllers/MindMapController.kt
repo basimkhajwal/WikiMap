@@ -3,6 +3,7 @@ package wikimap.controllers
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.ObservableList
+import javafx.collections.transformation.FilteredList
 import tornadofx.*
 import wikimap.models.MindMap
 import wikimap.models.MindMapNode
