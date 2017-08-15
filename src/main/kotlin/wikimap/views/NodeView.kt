@@ -12,6 +12,7 @@ import javafx.scene.text.FontWeight
 import javafx.scene.text.TextAlignment
 import tornadofx.*
 import wikimap.controllers.MindMapController
+import wikimap.models.MindMapNode
 import wikimap.utils.DragResizeMod
 import wikimap.utils.UpdateEvent
 import wikimap.viewmodels.MindMapNodeModel
@@ -21,7 +22,7 @@ class NodeView : Fragment() {
     val controller: MindMapController by inject()
     val gridView: GridView by inject()
 
-    val model: MindMapNodeModel by param()
+    val model: MindMapNode by param()
 
     var rect: Rectangle by singleAssign()
     var label: Label by singleAssign()
@@ -38,31 +39,31 @@ class NodeView : Fragment() {
             val cx = Math.round(nx).toInt()
             val cy = Math.round(ny).toInt()
 
-            if (nx != model.x.value) {
-                model.width.value = (model.x + model.width) - cx
+            if (nx != model.x.toDouble()) {
+                model.width = (model.x + model.width) - cx
             } else {
-                model.width.value = Math.round(w / controller.gridSpacing).toInt()
+                model.width = Math.round(w / controller.gridSpacing).toInt()
             }
 
             if (ny != model.y.toDouble()) {
-                model.height.value = (model.y + model.height) - cy
+                model.height = (model.y + model.height) - cy
             } else {
-                model.height.value = Math.round(h / controller.gridSpacing).toInt()
+                model.height = Math.round(h / controller.gridSpacing).toInt()
             }
 
-            model.x.value = cx
-            model.y.value = cy
+            model.x = cx
+            model.y = cy
 
-            if (model.width.value > 3) model.width.value = 3
-            if (model.height.value > 3) model.height.value = 3
+            if (model.width > 3) model.width = 3
+            if (model.height > 3) model.height = 3
 
             refresh()
         }
 
         override fun onDrag(n: Node?, x: Double, y: Double, h: Double, w: Double) {
             val (nx, ny) = gridView.toGridCoords(x, y)
-            model.x.value = Math.round(nx).toInt()
-            model.y.value = Math.round(ny).toInt()
+            model.x = Math.round(nx).toInt()
+            model.y = Math.round(ny).toInt()
             refresh()
         }
     }
@@ -108,8 +109,8 @@ class NodeView : Fragment() {
     override val root = stackpane {
 
         rectangle {
-            widthProperty().bind(controller.gridSpacingProperty.multiply(model.width))
-            heightProperty().bind(controller.gridSpacingProperty.multiply(model.height))
+            widthProperty().bind(controller.gridSpacingProperty.multiply(model.widthProperty))
+            heightProperty().bind(controller.gridSpacingProperty.multiply(model.heightProperty))
 
             arcWidthProperty().bind(controller.gridSpacingProperty)
             arcHeightProperty().bind(controller.gridSpacingProperty)
@@ -118,7 +119,7 @@ class NodeView : Fragment() {
             rect = this
         }
 
-        label(model.key) {
+        label(model.keyProperty) {
             style {
                 textFill = Color.WHITE
                 fontWeight = FontWeight.BOLD
@@ -128,14 +129,14 @@ class NodeView : Fragment() {
             }
 
             onDoubleClick {
-                model.isEditing.value = true
+                model.isEditing = true
             }
 
-            visibleWhen { model.isEditing.not() }
+            visibleWhen { model.editingProperty.not() }
             label = this
         }
 
-        textarea(model.key) {
+        textarea(model.keyProperty) {
             style {
                 textFill = Color.WHITE
                 fontWeight = FontWeight.BOLD
@@ -145,13 +146,13 @@ class NodeView : Fragment() {
             paddingTop = 10
             paddingBottom = 10
 
-            visibleWhen { model.isEditing }
+            visibleWhen { model.editingProperty }
 
             whenVisible { requestFocus() }
 
             focusedProperty().onChange {
                 if (!it) {
-                    model.isEditing.value = false
+                    model.isEditing = false
                 }
             }
 
@@ -162,9 +163,7 @@ class NodeView : Fragment() {
                 it.style {
                     backgroundColor = multi(Color(0.0,0.0,0.0,0.05))
                 }
-
-                // Prevent blurry text
-                it.isCache = false
+                it.isCache = false // Prevent blurry text
             }
 
             textArea = this
@@ -174,14 +173,17 @@ class NodeView : Fragment() {
         prefHeightProperty().bind(rect.heightProperty())
 
         borderProperty().bind(
-            model.isSelected.objectBinding {
-                if (it ?: false) selectedBorder else Border.EMPTY
+            model.selectedProperty.objectBinding {
+                if (it == true) selectedBorder else Border.EMPTY
             }
         )
 
-        if (!isSuggestion) {
-            onMouseClicked = EventHandler {
-                main.selectNodes(this)
+        onMouseClicked = EventHandler {
+
+            if (model.isSuggestion) {
+
+            } else {
+                controller.select(model)
             }
         }
 
@@ -193,8 +195,7 @@ class NodeView : Fragment() {
         refresh()
     }
 
-    fun getCenterX(): Double = gridView.fromGridCoords(model.x + model.width/2.0, 0.0).first
-    fun getCenterY(): Double = gridView.fromGridCoords(0.0, model.y + model.height/2.0).second
+    fun getCenter(): Pair<Double, Double> = gridView.fromGridCoords(model.x + model.width/2.0, model.y + model.height/2.0)
 
     private fun refresh() {
         val (x, y) = gridView.fromGridCoords(model.x.toDouble(), model.y.toDouble())

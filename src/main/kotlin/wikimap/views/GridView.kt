@@ -18,8 +18,15 @@ class GridView : View() {
     override val root = Pane(canvas)
 
     init {
-        root.layoutBoundsProperty().onChange { draw() }
+
+        controller.gridCenterProperty.bind(
+            root.layoutBoundsProperty().objectBinding { bounds ->
+                Pair((bounds?.width ?: 0.0) / 2, (bounds?.height ?: 0.0) / 2)
+            }
+        )
+
         controller.gridSpacingProperty.onChange { draw() }
+        controller.gridCenterProperty.onChange { draw() }
     }
 
     private fun draw() {
