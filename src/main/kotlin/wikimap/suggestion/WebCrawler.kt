@@ -1,38 +1,39 @@
-package wikimap.app
+package wikimap.suggestion
 
 import java.net.URL
-import javax.xml.ws.WebEndpoint
 
-class WebCrawler(val seedUrl:String, val maxDepth:Int){
-    val crawledUrls:MutableList<String> = mutableListOf()
+class WebCrawler(val seedUrl: String, val maxDepth: Int) {
 
-    fun crawl(currentUrl:String, depth:Int):List<String>{
-        if(depth > maxDepth || crawledUrls.contains(currentUrl)) {
+    val crawledUrls: MutableList<String> = mutableListOf()
+
+    fun crawl(currentUrl: String, depth: Int): List<String>{
+
+        if (depth > maxDepth || crawledUrls.contains(currentUrl)) {
             return listOf()
-        }else{
-            crawledUrls.add(currentUrl)
-            println(currentUrl + " " + depth)
-            val rawPage = downloadPage(currentUrl)
-            val intro = extractIntro(getArticleNameFromUrl(currentUrl), rawPage)
+        }
 
-            val introLinks = extractLinks(intro)
+        crawledUrls.add(currentUrl)
+        println(currentUrl + " " + depth)
+        val rawPage = downloadPage(currentUrl)
+        val intro = extractIntro(getArticleNameFromUrl(currentUrl), rawPage)
 
-            for (link in introLinks){
-                if (validateLink(link)){
-                    if (linkIsComplete(link)){
-                        crawl(link, depth + 1)
-                    }
-                    else{
-                        crawl(seedUrl + link, depth + 1)
-                    }
+        val introLinks = extractLinks(intro)
+
+        for (link in introLinks){
+            if (validateLink(link)){
+                if (linkIsComplete(link)){
+                    crawl(link, depth + 1)
+                }
+                else{
+                    crawl(seedUrl + link, depth + 1)
                 }
             }
-
-            return crawledUrls
         }
+
+        return crawledUrls
     }
 
-    fun getSiteSearchResultLinks(searchTerm:String):List<String>{
+    fun getSiteSearchResultLinks(searchTerm: String): List<String> {
         val searchUrl = seedUrl + "/w/index.php?search=" + searchTerm.replace(" ", "+").replace("_", "+")
 
         val searchResultsPage = downloadPage(searchUrl)
@@ -40,12 +41,12 @@ class WebCrawler(val seedUrl:String, val maxDepth:Int){
         return resultLinks
     }
 
-    fun getArticleNameFromUrl(url:String):String{
+    fun getArticleNameFromUrl(url: String): String {
         val startIndex = url.indexOf("/wiki/") + "/wiki/".length
         return url.substring(startIndex).replace("_", " ")
     }
 
-    fun extractSearchResultsLinks(fullPage:String):List<String>{
+    fun extractSearchResultsLinks(fullPage: String): List<String> {
         val resultsStart = fullPage.indexOf("<ul class='mw-search-results'>")
         val resultsEnd = fullPage.indexOf("</ul>", resultsStart + 1)
 
@@ -54,12 +55,12 @@ class WebCrawler(val seedUrl:String, val maxDepth:Int){
         return extractLinks(results)
     }
 
-    fun downloadPage(urlString:String):String{
+    fun downloadPage(urlString: String): String {
         val url = URL(urlString)
         return url.readText()
     }
 
-    fun extractIntro(articleName:String, rawPage:String, searchStartIndex:Int = 0):String{
+    fun extractIntro(articleName: String, rawPage: String, searchStartIndex: Int = 0): String{
         val queryStem = "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles="
         val json = downloadPage(queryStem + articleName.replace(" ", "_"))
 
@@ -73,7 +74,7 @@ class WebCrawler(val seedUrl:String, val maxDepth:Int){
         return rawIntro
     }
 
-    fun extractLinks(str:String):MutableList<String>{
+    fun extractLinks(str: String): MutableList<String> {
         var searchIndex = 0
 
         val linkList = mutableListOf<String>()
@@ -95,20 +96,15 @@ class WebCrawler(val seedUrl:String, val maxDepth:Int){
         return linkList
     }
 
-    fun linkIsComplete(link:String):Boolean{
+    fun linkIsComplete(link: String): Boolean{
         return link.contains(seedUrl)
     }
 
-    fun validateLink(link:String):Boolean{
+    fun validateLink(link: String): Boolean{
         if (link.contains("#")){
             return false
         }else{
             return (!link.contains("https://") || link.contains(seedUrl))
         }
     }
-}
-
-fun main(args:Array<String>){
-    var crawler = WebCrawler("https://en.wikipedia.org", 1)
-    print(crawler.crawl("https://en.wikipedia.org/iki/Egypt", 0))
 }

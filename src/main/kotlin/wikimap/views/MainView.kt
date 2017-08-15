@@ -8,15 +8,14 @@ import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
-import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import tornadofx.*
 import wikimap.models.MindMap
 import wikimap.models.MindMapNode
 import wikimap.utils.KeyboardHandler
-import wikimap.utils.SuggestionsCache
-import wikimap.app.BasicSuggestionProvider
+import wikimap.suggestion.SuggestionsCache
+import wikimap.suggestion.BasicSuggestionProvider
 import wikimap.views.ChangeEvent
 import wikimap.views.GridView
 import wikimap.views.MenuBarView
