@@ -6,7 +6,6 @@ import tornadofx.*
 class MindMapNode(
     key: String, x: Int, y: Int, width: Int, height: Int,
     children: MutableList<MindMapNode> = mutableListOf(),
-    parent: MindMapNode = null,
     isSuggestion: Boolean = false
 ) {
 
@@ -33,12 +32,6 @@ class MindMapNode(
 
     val editingProperty = SimpleBooleanProperty(false)
     var isEditing by editingProperty
-
-    val removedProperty = SimpleBooleanProperty(false)
-    var isRemoved by removedProperty
-
-    val parentProperty: ObjectProperty<MindMapNode?> = SimpleObjectProperty(parent)
-    var parent by parentProperty
 
     val children = children.observable()
 

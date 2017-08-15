@@ -3,8 +3,8 @@ package wikimap.views
 import javafx.scene.control.MenuBar
 import javafx.stage.FileChooser
 import tornadofx.*
-import wikimap.controllers.MindMapController
 import wikimap.models.MindMap
+import wikimap.view.MainView
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -16,7 +16,7 @@ class MenuBarView : View() {
 
     private var file: File? = null
 
-    val controller: MindMapController by inject()
+    val main: MainView by inject()
 
     override val root = MenuBar()
 
@@ -53,11 +53,11 @@ class MenuBarView : View() {
         val fileContents = String(Files.readAllBytes(file!!.toPath()))
         val model = MindMap.deserialize(fileContents)
 
-        controller.loadModel(model)
+        main.loadModel(model)
     }
 
     private fun saveToFile() {
-        val fileData = controller.model.serialize().toByteArray()
+        val fileData = main.mindMap.serialize().toByteArray()
         Files.write(file!!.toPath(), fileData, StandardOpenOption.CREATE_NEW)
     }
 }

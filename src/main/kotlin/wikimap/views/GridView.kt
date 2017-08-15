@@ -1,32 +1,37 @@
 package wikimap.views
 
+import javafx.beans.property.SimpleIntegerProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.canvas.Canvas
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
 import tornadofx.*
-import wikimap.controllers.MindMapController
 
 /**
  * Created by Basim on 04/08/2017.
  */
 class GridView : View() {
 
-    val controller: MindMapController by inject()
-    private var spacing by controller.gridSpacingProperty
+    val centerProperty = SimpleObjectProperty(Pair(0.0, 0.0))
+    var center by centerProperty
 
-    val canvas = Canvas(800.0, 600.0)
+    val spacingProperty = SimpleIntegerProperty(20)
+    var spacing by spacingProperty
+
+    private val canvas = Canvas(800.0, 600.0)
+
     override val root = Pane(canvas)
 
     init {
 
-        controller.gridCenterProperty.bind(
+        centerProperty.bind(
             root.layoutBoundsProperty().objectBinding { bounds ->
                 Pair((bounds?.width ?: 0.0) / 2, (bounds?.height ?: 0.0) / 2)
             }
         )
 
-        controller.gridSpacingProperty.onChange { draw() }
-        controller.gridCenterProperty.onChange { draw() }
+        spacingProperty.onChange { draw() }
+        centerProperty.onChange { draw() }
     }
 
     private fun draw() {
@@ -55,10 +60,10 @@ class GridView : View() {
     }
 
     fun fromGridCoords(x: Double, y: Double): Pair<Double, Double> {
-        return Pair(x*spacing + canvas.width/2, y*spacing + canvas.height/2)
+        return Pair(x*spacing + center.first, y*spacing + center.second)
     }
 
     fun toGridCoords(x: Double, y: Double): Pair<Double, Double> {
-        return Pair((x - canvas.width/2) / spacing, (y - canvas.height/2) / spacing)
+        return Pair((x - center.first) / spacing, (y - center.second) / spacing)
     }
 }

@@ -13,6 +13,7 @@ import javafx.scene.layout.VBox
 import javafx.scene.text.TextAlignment
 import tornadofx.*
 import wikimap.utils.NumericTextField
+import wikimap.view.MainView
 
 /**
  * Created by Basim on 04/08/2017.

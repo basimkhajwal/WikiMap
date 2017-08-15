@@ -1,4 +1,4 @@
-package wikimap.views
+package wikimap.view
 
 import javafx.scene.layout.Pane
 import javafx.scene.shape.Line
@@ -6,47 +6,35 @@ import javafx.scene.shape.Rectangle
 import javafx.scene.shape.Shape
 import tornadofx.*
 
-class ConnectionView : Fragment() {
+class ConnectionView(val parent: NodeView, val child: NodeView): Pane() {
 
     private val line = Line(0.0,0.0,0.0,0.0)
 
-    val parent: NodeView by param()
-    val child: NodeView by param()
-
-    private var isConnected = true
-
-    override val root = Pane(line)
-
-    init {
-        root.layoutBoundsProperty().onChange { refresh() }
-
-        parent.root.layoutBoundsProperty().onChange { refresh() }
-        child.root.layoutBoundsProperty().onChange { refresh() }
-
-        child.model.removedProperty.onChange {
-            isConnected = false
-            root.removeFromParent()
-        }
-
-        refresh()
-    }
-
     private fun refresh() {
 
-        if (!isConnected) return
+        line.startX = parent.getCenterX()
+        line.startY = parent.getCenterY()
+        line.endX = child.getCenterX()
+        line.endY = child.getCenterY()
 
-        val (px, py) = parent.getCenter()
-        val (cx, cy) = child.getCenter()
-        line.startX = px
-        line.startY = py
-        line.endX = cx
-        line.endY = cy
-
-        val total = Rectangle(root.layoutBounds.width, root.layoutBounds.height)
-        root.clip = Shape.subtract(total, Shape.union(
-                Rectangle(parent.root.layoutX, parent.root.layoutY, parent.rect.width, parent.rect.height),
-                Rectangle(child.root.layoutX, child.root.layoutY, child.rect.width, child.rect.height)
+        val total = Rectangle(layoutBounds.width, layoutBounds.height)
+        clip = Shape.subtract(total,Shape.union(
+            Rectangle(parent.layoutX, parent.layoutY, parent.rect.width, parent.rect.height),
+            Rectangle(child.layoutX, child.layoutY, child.rect.width, child.rect.height)
         ))
-        root.toBack()
+        toBack()
+    }
+
+    init {
+
+        this += line
+
+        layoutBoundsProperty().onChange { refresh() }
+
+        parent.onChange += this::refresh
+        child.onChange += this::refresh
+        parent.main.onChange += this::refresh
+
+        refresh()
     }
 }
