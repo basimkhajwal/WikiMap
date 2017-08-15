@@ -5,8 +5,6 @@ import javafx.scene.shape.Line
 import javafx.scene.shape.Rectangle
 import javafx.scene.shape.Shape
 import tornadofx.*
-import wikimap.controllers.MindMapController
-import wikimap.models.MindMapNode
 
 class ConnectionView : Fragment() {
 
@@ -14,6 +12,8 @@ class ConnectionView : Fragment() {
 
     val parent: NodeView by param()
     val child: NodeView by param()
+
+    private var isConnected = true
 
     override val root = Pane(line)
 
@@ -23,10 +23,18 @@ class ConnectionView : Fragment() {
         parent.root.layoutBoundsProperty().onChange { refresh() }
         child.root.layoutBoundsProperty().onChange { refresh() }
 
+        child.model.removedProperty.onChange {
+            isConnected = false
+            root.removeFromParent()
+        }
+
         refresh()
     }
 
     private fun refresh() {
+
+        if (!isConnected) return
+
         val (px, py) = parent.getCenter()
         val (cx, cy) = child.getCenter()
         line.startX = px

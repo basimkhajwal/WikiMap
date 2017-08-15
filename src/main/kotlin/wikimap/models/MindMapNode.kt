@@ -1,13 +1,12 @@
 package wikimap.models
 
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleIntegerProperty
-import javafx.beans.property.SimpleStringProperty
+import javafx.beans.property.*
 import tornadofx.*
 
 class MindMapNode(
     key: String, x: Int, y: Int, width: Int, height: Int,
     children: MutableList<MindMapNode> = mutableListOf(),
+    parent: MindMapNode = null,
     isSuggestion: Boolean = false
 ) {
 
@@ -37,6 +36,9 @@ class MindMapNode(
 
     val removedProperty = SimpleBooleanProperty(false)
     var isRemoved by removedProperty
+
+    val parentProperty: ObjectProperty<MindMapNode?> = SimpleObjectProperty(parent)
+    var parent by parentProperty
 
     val children = children.observable()
 
