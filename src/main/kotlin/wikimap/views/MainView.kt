@@ -2,6 +2,7 @@ package wikimap.view
 
 import javafx.application.Platform
 import javafx.event.EventHandler
+import javafx.scene.Node
 import javafx.scene.control.SplitPane
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
@@ -41,16 +42,11 @@ class MainView : View("WikiMap") {
         )
     )
 
-    val gridView: GridView by inject()
-    val menuBarView: MenuBarView by inject()
-
     val nodePane = Pane()
 
     val nodes = mutableListOf<NodeView>()
     val nodeConnections = mutableListOf<ConnectionView>()
-
     val suggestionNodes = mutableListOf<NodeView>()
-
     val selectedNodes = mutableListOf<NodeView>().observable()
 
     val keyboardHandler = KeyboardHandler()
@@ -63,8 +59,13 @@ class MainView : View("WikiMap") {
         isVisible = false
     }
 
+    val gridView: GridView by inject()
+    val menuBarView: MenuBarView = find(mapOf(MenuBarView::main to this))
+    val nodeEditView: NodeEditView = find(mapOf(NodeEditView::main to this))
+
     val mindMapView = StackPane(gridView.root, nodePane)
-    val splitPane = SplitPane(mindMapView, NodeEditView(this))
+    val splitPane = SplitPane(mindMapView, nodeEditView.root)
+
     override val root = BorderPane(splitPane, menuBarView.root, null, null, null)
 
     init {
@@ -156,19 +157,14 @@ class MainView : View("WikiMap") {
     }
 
     fun showSuggestions(parent: NodeView) {
-        val suggestions = suggestionProvider.getSuggestions(parent.keyText.get())
-
-        if (suggestions.size > 0) {
-            createChild(parent.model, key = suggestions[0], angle = 0.0, isSuggestion = true)
+        runAsync {
+            suggestionProvider.getSuggestions(parent.keyText.get())
+        } ui { suggestions ->
+            if (suggestions.isNotEmpty()) createChild(parent.model, key = suggestions[0], angle = 0.0, isSuggestion = true)
+            if (suggestions.size > 1) createChild(parent.model, key = suggestions[1], angle = 120.0, isSuggestion = true)
+            if (suggestions.size > 2) createChild(parent.model, key = suggestions[2], angle = 240.0, isSuggestion = true)
         }
 
-        if (suggestions.size > 1) {
-            createChild(parent.model, key = suggestions[1], angle = 120.0, isSuggestion = true)
-        }
-
-        if (suggestions.size > 2) {
-            createChild(parent.model, key = suggestions[2], angle = 240.0, isSuggestion = true)
-        }
     }
 
     fun removeSuggestions(parent: NodeView) {

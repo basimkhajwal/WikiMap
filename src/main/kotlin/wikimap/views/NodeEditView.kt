@@ -1,7 +1,6 @@
 package wikimap.views
 
 import javafx.beans.property.IntegerProperty
-import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
 import tornadofx.*
 import wikimap.utils.NumericTextField
@@ -11,14 +10,15 @@ import wikimap.view.NodeView
 /**
  * Created by Basim on 04/08/2017.
  */
-class NodeEditView(private val main: MainView) : StackPane() {
+class NodeEditView : View() {
 
     private val suggestionsList = mutableListOf<String>().observable()
     private var oldKey = ""
 
+    val main: MainView by param()
     private val items = main.selectedNodes
 
-    private val root = titledpane("Edit Node") {
+    override val root = titledpane("Edit Node") {
         textAlignment = TextAlignment.CENTER
         maxWidth = 300.0
         isCollapsible = false
@@ -38,7 +38,6 @@ class NodeEditView(private val main: MainView) : StackPane() {
     }
 
     init {
-        this += root
         main.onChange += this::refresh
         refresh()
     }
@@ -75,6 +74,7 @@ class NodeEditView(private val main: MainView) : StackPane() {
             }
         }
 
+
         update()
         return this
     }
@@ -89,8 +89,14 @@ class NodeEditView(private val main: MainView) : StackPane() {
         val key = items.first().model.key
         if (key != oldKey) {
             oldKey = key
-            suggestionsList.clear()
-            suggestionsList.addAll(main.suggestionProvider.getSuggestions(key))
+
+            runAsync {
+                main.suggestionProvider.getSuggestions(key)
+            } ui {
+                suggestionsList.clear()
+                suggestionsList.addAll(it)
+            }
+
         }
     }
 }
