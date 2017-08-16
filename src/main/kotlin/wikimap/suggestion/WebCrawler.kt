@@ -2,109 +2,52 @@ package wikimap.suggestion
 
 import java.net.URL
 
-class WebCrawler(val seedUrl: String, val maxDepth: Int) {
-
-    val crawledUrls: MutableList<String> = mutableListOf()
+class WebCrawler(val seedUrl: String) {
 
     fun crawl(currentUrl: String, depth: Int): List<String>{
+        if (depth < 0) return listOf(currentUrl)
 
-        if (depth > maxDepth || crawledUrls.contains(currentUrl)) {
-            return listOf()
-        }
-
-        crawledUrls.add(currentUrl)
-        println(currentUrl + " " + depth)
         val rawPage = downloadPage(currentUrl)
-        val intro = extractIntro(getArticleNameFromUrl(currentUrl), rawPage)
+        val intro = extractIntro(rawPage)
 
-        val introLinks = extractLinks(intro)
-
-        for (link in introLinks){
-            if (validateLink(link)){
-                if (linkIsComplete(link)){
-                    crawl(link, depth + 1)
-                }
-                else{
-                    crawl(seedUrl + link, depth + 1)
-                }
-            }
-        }
-
-        return crawledUrls
+        return extractLinks(intro)
+            .filter { validateLink(it) }
+            .flatMap { crawl(completeLink(it), depth - 1) }
+            .toSet().toList()
     }
 
     fun getSiteSearchResultLinks(searchTerm: String): List<String> {
         val searchUrl = seedUrl + "/w/index.php?search=" + searchTerm.replace(" ", "+").replace("_", "+")
-
         val searchResultsPage = downloadPage(searchUrl)
-        val resultLinks = extractSearchResultsLinks(searchResultsPage)
-        return resultLinks
-    }
 
-    fun getArticleNameFromUrl(url: String): String {
-        val startIndex = url.indexOf("/wiki/") + "/wiki/".length
-        return url.substring(startIndex).replace("_", " ")
+        return extractSearchResultsLinks(searchResultsPage)
     }
 
     fun extractSearchResultsLinks(fullPage: String): List<String> {
         val resultsStart = fullPage.indexOf("<ul class='mw-search-results'>")
         val resultsEnd = fullPage.indexOf("</ul>", resultsStart + 1)
 
-        val results = fullPage.slice(IntRange(resultsStart, resultsEnd - 1))
-
+        val results = fullPage.substring(resultsStart, resultsEnd)
         return extractLinks(results)
     }
 
-    fun downloadPage(urlString: String): String {
-        val url = URL(urlString)
-        return url.readText()
+    fun downloadPage(urlString: String): String = URL(urlString).readText()
+
+    fun extractIntro(rawPage: String): String{
+        val startString = "<div class=\"mv-parser-output\""
+        val endString = "<div id=\"toc\""
+
+        return rawPage.substring(rawPage.indexOf(startString), rawPage.indexOf(endString))
     }
 
-    fun extractIntro(articleName: String, rawPage: String, searchStartIndex: Int = 0): String{
-        val queryStem = "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles="
-        val json = downloadPage(queryStem + articleName.replace(" ", "_"))
-
-        val startString = "\"extract\":\""
-
-        val introStart = json.indexOf(startString)
-        val introStop = json.indexOf("</p>")
-
-        val rawIntro = json.substring(introStart + startString.length, introStop)
-
-        return rawIntro
+    fun extractLinks(str: String): List<String> {
+        val regex = Regex("<a href=[\"'](.*?)[\"']")
+        return regex.findAll(str).map { it.groups[1]!!.value }.toList()
     }
 
-    fun extractLinks(str: String): MutableList<String> {
-        var searchIndex = 0
-
-        val linkList = mutableListOf<String>()
-
-        while (true){
-            val startLink = str.indexOf("<a href", searchIndex)
-
-            if (startLink == -1)
-                break
-            else{
-                val startQuote = str.indexOf("\"", startLink + 1)
-                val endQuote = str.indexOf("\"", startQuote + 1)
-
-                linkList.add(str.substring(startQuote + 1, endQuote))
-                searchIndex = endQuote
-            }
-        }
-
-        return linkList
-    }
-
-    fun linkIsComplete(link: String): Boolean{
-        return link.contains(seedUrl)
-    }
+    fun completeLink(link: String): String = if (link.contains(seedUrl)) link else seedUrl + link
 
     fun validateLink(link: String): Boolean{
-        if (link.contains("#")){
-            return false
-        }else{
-            return (!link.contains("https://") || link.contains(seedUrl))
-        }
+        return !link.contains("#") && (!link.contains("https://") || link.contains(seedUrl))
     }
 }

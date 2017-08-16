@@ -9,23 +9,20 @@ class BasicSuggestionProvider : SuggestionProvider {
         val crawler = WebCrawler(seedUrl, 1)
         val link = expandLink(key)
 
-        var suggestedLinks:List<String>
+        var suggestedLinks: List<String>
 
         try {
             suggestedLinks = crawler.crawl(link, 0)
-        }catch (ex:FileNotFoundException){
-            val searchTerm = extractArticleNames(listOf(link)).first()
-            suggestedLinks = crawler.getSiteSearchResultLinks(searchTerm)
+        } catch (ex: FileNotFoundException) {
+            suggestedLinks = crawler.getSiteSearchResultLinks(key)
         }
 
-        return extractArticleNames(suggestedLinks)
+        return suggestedLinks.map { extractArticleName(it) }
     }
 
-    fun expandLink(articleName: String): String = seedUrl + "/wiki/" + articleName.replace(" ", "_")
+    fun expandLink(articleName: String): String =
+        seedUrl + "/wiki/" + articleName.replace(" ", "_")
 
-    fun extractArticleNames(links: List<String>): List<String> =
-        links.map {
-            it.substring(it.indexOf("/wiki/") + "/wiki/".length)
-              .replace("_", " ")
-        }
+    fun extractArticleName(link: String): String =
+        link.substring(link.indexOf("/wiki/") + "/wiki/".length).replace("_", " ")
 }
