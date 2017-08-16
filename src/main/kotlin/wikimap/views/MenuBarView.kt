@@ -18,32 +18,28 @@ class MenuBarView : View() {
 
     val main: MainView by inject()
 
-    override val root = MenuBar()
-
-    init {
-        with(root) {
-            menu("File") {
-                item("Open") {
-                    action {
-                        file = FileChooser().showOpenDialog(currentWindow)
-                        loadFromFile()
-                    }
+    override val root = menubar {
+        menu("File") {
+            item("Open") {
+                action {
+                    file = FileChooser().showOpenDialog(currentWindow)
+                    loadFromFile()
                 }
+            }
 
-                item("Save") {
-                    action {
-                        if (file == null) {
-                            file = FileChooser().showSaveDialog(currentWindow)
-                        }
-                        saveToFile()
-                    }
-                }
-
-                item("Save As") {
-                    action {
+            item("Save") {
+                action {
+                    if (file == null) {
                         file = FileChooser().showSaveDialog(currentWindow)
-                        saveToFile()
                     }
+                    saveToFile()
+                }
+            }
+
+            item("Save As") {
+                action {
+                    file = FileChooser().showSaveDialog(currentWindow)
+                    saveToFile()
                 }
             }
         }
