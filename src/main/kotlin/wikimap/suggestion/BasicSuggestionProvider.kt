@@ -3,16 +3,16 @@ package wikimap.suggestion
 import java.io.FileNotFoundException
 
 class BasicSuggestionProvider : SuggestionProvider {
-    val seedUrl = "https://en.wikipedia.org"
+    private val seedUrl = "https://en.wikipedia.org"
 
     override fun getSuggestions(key: String): List<String> {
-        val crawler = WebCrawler(seedUrl, 1)
+        val crawler = WebCrawler(seedUrl)
         val link = expandLink(key)
 
         var suggestedLinks: List<String>
 
         try {
-            suggestedLinks = crawler.crawl(link, 0)
+            suggestedLinks = crawler.crawl(link, 1).filterNot { it == link }
         } catch (ex: FileNotFoundException) {
             suggestedLinks = crawler.getSiteSearchResultLinks(key)
         }
@@ -20,9 +20,9 @@ class BasicSuggestionProvider : SuggestionProvider {
         return suggestedLinks.map { extractArticleName(it) }
     }
 
-    fun expandLink(articleName: String): String =
+    private fun expandLink(articleName: String): String =
         seedUrl + "/wiki/" + articleName.replace(" ", "_")
 
-    fun extractArticleName(link: String): String =
+    private fun extractArticleName(link: String): String =
         link.substring(link.indexOf("/wiki/") + "/wiki/".length).replace("_", " ")
 }
