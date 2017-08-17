@@ -12,8 +12,8 @@ import tornadofx.*
  */
 class GridView : View() {
 
-    val centerProperty = SimpleObjectProperty(Pair(0.0, 0.0))
-    var center by centerProperty
+    val gridCenterProperty = SimpleObjectProperty(Pair(0.5, 0.5))
+    var gridCenter by gridCenterProperty
 
     val spacingProperty = SimpleIntegerProperty(20)
     var spacing by spacingProperty
@@ -23,47 +23,38 @@ class GridView : View() {
     override val root = Pane(canvas)
 
     init {
-
-        centerProperty.bind(
-            root.layoutBoundsProperty().objectBinding { bounds ->
-                Pair((bounds?.width ?: 0.0) / 2, (bounds?.height ?: 0.0) / 2)
-            }
-        )
-
         spacingProperty.onChange { draw() }
-        centerProperty.onChange { draw() }
+        gridCenterProperty.onChange { draw() }
+        root.layoutBoundsProperty().onChange { draw() }
     }
 
     private fun draw() {
-
         val width = root.layoutBounds.width
         val height = root.layoutBounds.height
         canvas.width = width
         canvas.height = height
 
         val g2d = canvas.graphicsContext2D
-        val hw = width/2
-        val hh = height/2
-        val xRange = Math.floor(width / spacing).toInt() + 1
-        val yRange = Math.floor(height / spacing).toInt() + 1
 
         g2d.clearRect(0.0, 0.0, width, height)
         g2d.stroke = Color.LIGHTGRAY
         g2d.lineWidth = 0.5
 
-        for (x in (-xRange/2)..(xRange/2)) {
-            g2d.strokeLine(x*spacing + hw, 0.0, x*spacing + hw, height)
-        }
-        for (y in (-yRange/2)..(yRange/2)) {
-            g2d.strokeLine(0.0, y*spacing + hh, width, y*spacing + hh)
-        }
+        val px = width * gridCenter.first
+        val py = height * gridCenter.second
+
+        val xRange = (-px/spacing).toInt()..((width-px).toInt() / spacing)
+        val yRange = (-py/spacing).toInt()..((height-py).toInt() / spacing)
+
+        for (x in xRange) g2d.strokeLine(x*spacing + px, 0.0, x*spacing + px, height)
+        for (y in yRange) g2d.strokeLine(0.0, y*spacing + py, width, y*spacing + py)
     }
 
     fun fromGridCoords(x: Double, y: Double): Pair<Double, Double> {
-        return Pair(x*spacing + center.first, y*spacing + center.second)
+        return Pair(x*spacing + gridCenter.first*canvas.width, y*spacing + gridCenter.second*canvas.height)
     }
 
     fun toGridCoords(x: Double, y: Double): Pair<Double, Double> {
-        return Pair((x - center.first) / spacing, (y - center.second) / spacing)
+        return Pair((x - gridCenter.first*canvas.width) / spacing, (y - gridCenter.second*canvas.height) / spacing)
     }
 }

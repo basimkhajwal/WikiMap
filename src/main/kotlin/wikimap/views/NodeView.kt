@@ -25,8 +25,8 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
 
     val rect: Rectangle =
         Rectangle(0.0, 0.0).apply {
-            arcWidth = main.gridSpacing.toDouble()
-            arcHeight = main.gridSpacing.toDouble()
+            arcWidth = main.gridView.spacing.toDouble()
+            arcHeight = main.gridView.spacing.toDouble()
             fill = Color(Math.random(), Math.random(), Math.random(), 0.7)
         }
 
@@ -68,13 +68,13 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
             if (nx != model.x.toDouble()) {
                 model.width = (model.x + model.width) - cx
             } else {
-                model.width = Math.round(w / main.gridSpacing).toInt()
+                model.width = Math.round(w / main.gridView.spacing).toInt()
             }
 
             if (ny != model.y.toDouble()) {
                 model.height = (model.y + model.height) - cy
             } else {
-                model.height = Math.round(h / main.gridSpacing).toInt()
+                model.height = Math.round(h / main.gridView.spacing).toInt()
             }
 
             model.x = cx
@@ -169,8 +169,8 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
 
     private fun refresh() {
         val (x, y) = main.gridView.fromGridCoords(model.x.toDouble(), model.y.toDouble())
-        rect.width = model.width.toDouble() * main.gridSpacing
-        rect.height = model.height.toDouble() * main.gridSpacing
+        rect.width = model.width.toDouble() * main.gridView.spacing
+        rect.height = model.height.toDouble() * main.gridView.spacing
         relocate(x, y)
         setPrefSize(rect.width, rect.height)
 

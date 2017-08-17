@@ -17,10 +17,6 @@ import wikimap.models.MindMapNode
 import wikimap.utils.KeyboardHandler
 import wikimap.suggestion.SuggestionsCache
 import wikimap.suggestion.BasicSuggestionProvider
-import wikimap.views.ChangeEvent
-import wikimap.views.GridView
-import wikimap.views.MenuBarView
-import wikimap.views.NodeEditView
 
 /**
  * The main view of the application
@@ -29,8 +25,6 @@ class MainView : View("WikiMap") {
 
     val onChange = ChangeEvent()
     val suggestionProvider = SuggestionsCache(BasicSuggestionProvider())
-
-    val gridSpacing: Int = 20
 
     var mindMap = MindMap(
         MindMapNode("Machine Learning", -3, -2, 6, 4,
@@ -49,15 +43,18 @@ class MainView : View("WikiMap") {
     val suggestionNodes = mutableListOf<NodeView>()
     val selectedNodes = mutableListOf<NodeView>().observable()
 
-    val keyboardHandler = KeyboardHandler()
+    private val keyboardHandler = KeyboardHandler()
 
-    var clickX = 0.0
-    var clickY = 0.0
-    val rectangleSelect = Rectangle().apply {
+    private var clickX = 0.0
+    private var clickY = 0.0
+    private var oldCenter = Pair(0.0, 0.0)
+
+    private val rectangleSelect = Rectangle().apply {
         fill = Color(0.0,0.05,0.1,0.05)
         stroke = Color.DARKGRAY
         isVisible = false
     }
+
 
     val gridView: GridView by inject()
     val menuBarView: MenuBarView = find(mapOf(MenuBarView::main to this))
@@ -78,21 +75,30 @@ class MainView : View("WikiMap") {
             clickX = event.x
             clickY = event.y
 
-            selectNodes()
-
-            mindMapView.requestFocus()
-
-            rectangleSelect.x = event.x
-            rectangleSelect.y = event.y
-            rectangleSelect.toFront()
+            if (event.button == MouseButton.SECONDARY) {
+                oldCenter = gridView.gridCenter
+            } else {
+                selectNodes()
+                mindMapView.requestFocus()
+                rectangleSelect.x = event.x
+                rectangleSelect.y = event.y
+                rectangleSelect.toFront()
+            }
         }
 
         mindMapView.onMouseDragged = EventHandler { event ->
-            rectangleSelect.isVisible = true
-            rectangleSelect.x = minOf(event.x, clickX)
-            rectangleSelect.y = minOf(event.y, clickY)
-            rectangleSelect.width = maxOf(event.x, clickX) - rectangleSelect.x
-            rectangleSelect.height = maxOf(event.y, clickY) - rectangleSelect.y
+            if (event.button == MouseButton.SECONDARY) {
+                val dx = (event.x - clickX) / gridView.root.width
+                val dy = (event.y - clickY) / gridView.root.height
+                gridView.gridCenter = Pair(oldCenter.first + dx, oldCenter.second + dy)
+                refresh()
+            } else {
+                rectangleSelect.isVisible = true
+                rectangleSelect.x = minOf(event.x, clickX)
+                rectangleSelect.y = minOf(event.y, clickY)
+                rectangleSelect.width = maxOf(event.x, clickX) - rectangleSelect.x
+                rectangleSelect.height = maxOf(event.y, clickY) - rectangleSelect.y
+            }
         }
 
         mindMapView.onMouseReleased = EventHandler {
