@@ -1,6 +1,7 @@
 package wikimap.views
 
 import javafx.beans.property.IntegerProperty
+import javafx.scene.layout.Priority
 import javafx.scene.text.TextAlignment
 import tornadofx.*
 import wikimap.utils.NumericTextField
@@ -20,8 +21,11 @@ class NodeEditView : View() {
 
     override val root = titledpane("Edit Node") {
         textAlignment = TextAlignment.CENTER
-        maxWidth = 300.0
+        minWidth = 350.0
+        maxWidth = 450.0
         isCollapsible = false
+        vgrow = Priority.ALWAYS
+        maxHeight = Double.MAX_VALUE
 
         content = form {
             fieldset("Node Properties") {
@@ -73,7 +77,6 @@ class NodeEditView : View() {
                 main.refresh()
             }
         }
-
 
         update()
         return this

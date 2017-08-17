@@ -19,20 +19,18 @@ import wikimap.views.ChangeEvent
 class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boolean = false): StackPane() {
 
     val onChange = ChangeEvent()
-    val keyText = SimpleStringProperty(model.key)
 
     private val isSelectedProperty = SimpleBooleanProperty(false)
     var isSelected by isSelectedProperty
 
     val rect: Rectangle =
-        Rectangle(main.gridSpacing * model.width.toDouble(),
-            main.gridSpacing * model.height.toDouble()).apply {
+        Rectangle(0.0, 0.0).apply {
             arcWidth = main.gridSpacing.toDouble()
             arcHeight = main.gridSpacing.toDouble()
             fill = Color(Math.random(), Math.random(), Math.random(), 0.7)
         }
 
-    val label: Label = Label(model.key).apply {
+    val label = Label(model.key).apply {
         style {
             textFill = Color.WHITE
             fontWeight = FontWeight.BOLD
@@ -40,24 +38,23 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
             textAlignment = TextAlignment.CENTER
             wrapText = true
         }
-        textProperty().bind(keyText)
+        textProperty().bind(model.keyProperty)
     }
 
-    val textArea: TextArea = TextArea(model.key).apply {
+    val textArea = TextArea(model.key).apply {
         style {
             textFill = Color.WHITE
             fontWeight = FontWeight.BOLD
             wrapText = true
             backgroundColor = multi(Color.TRANSPARENT)
         }
+        textProperty().bindBidirectional(model.keyProperty)
         paddingTop = 10
         paddingBottom = 10
-
-        textProperty().bindBidirectional(keyText)
         isVisible = false
     }
 
-    val selectedBorder = Border(BorderStroke(
+    private val selectedBorder = Border(BorderStroke(
         Color.BLUE, BorderStrokeStyle.SOLID,
         CornerRadii.EMPTY, BorderWidths(1.0)
     ))
@@ -140,17 +137,12 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
         this += label
         this += textArea
 
-        isSelectedProperty.onChange {
-            if (isSelected) {
-                border = selectedBorder
-            } else {
-                border = Border.EMPTY
-            }
-        }
 
-        keyText.onChange {
-            if (it != null) model.key = it
-        }
+        borderProperty().bind(
+            isSelectedProperty.objectBinding {
+                if (it ?: false) selectedBorder else Border.EMPTY
+            }
+        )
 
         textArea.focusedProperty().onChange {
             if (!it) hideTextArea()
@@ -197,16 +189,9 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
 
         val scrollPane = textArea.childrenUnmodifiable[0] as ScrollPane
         scrollPane.vbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-
         for (child in getAllChildren(textArea)) {
-            child.style {
-                backgroundColor = multi(Color(0.0,0.0,0.0,0.05))
-                alignment = Pos.CENTER
-                textAlignment = TextAlignment.CENTER
-            }
-
-            // Prevent blurry text
-            child.isCache = false
+            child.style { backgroundColor = multi(Color(0.0,0.0,0.0,0.05)) }
+            child.isCache = false // Prevent blurry text
         }
 
         textArea.requestFocus()
