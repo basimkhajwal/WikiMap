@@ -5,8 +5,6 @@ import javafx.scene.layout.Priority
 import javafx.scene.text.TextAlignment
 import tornadofx.*
 import wikimap.utils.NumericTextField
-import wikimap.view.MainView
-import wikimap.view.NodeView
 
 /**
  * Created by Basim on 04/08/2017.

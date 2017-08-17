@@ -1,4 +1,4 @@
-package wikimap.view
+package wikimap.views
 
 import javafx.scene.layout.Pane
 import javafx.scene.shape.Line

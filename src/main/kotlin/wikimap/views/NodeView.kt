@@ -1,4 +1,4 @@
-package wikimap.view
+package wikimap.views
 
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty

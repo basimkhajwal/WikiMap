@@ -1,11 +1,11 @@
-package wikimap.view
+package wikimap.views
 
 import javafx.application.Platform
 import javafx.event.EventHandler
-import javafx.scene.Node
 import javafx.scene.control.SplitPane
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
+import javafx.scene.input.MouseButton
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
@@ -75,11 +75,12 @@ class MainView : View("WikiMap") {
         nodePane += rectangleSelect
 
         mindMapView.onMousePressed = EventHandler { event ->
+            clickX = event.x
+            clickY = event.y
+
             selectNodes()
 
             mindMapView.requestFocus()
-            clickX = event.x
-            clickY = event.y
 
             rectangleSelect.x = event.x
             rectangleSelect.y = event.y
@@ -88,7 +89,6 @@ class MainView : View("WikiMap") {
 
         mindMapView.onMouseDragged = EventHandler { event ->
             rectangleSelect.isVisible = true
-
             rectangleSelect.x = minOf(event.x, clickX)
             rectangleSelect.y = minOf(event.y, clickY)
             rectangleSelect.width = maxOf(event.x, clickX) - rectangleSelect.x
@@ -158,7 +158,7 @@ class MainView : View("WikiMap") {
 
     fun showSuggestions(parent: NodeView) {
         runAsync {
-            suggestionProvider.getSuggestions(parent.keyText.get())
+            suggestionProvider.getSuggestions(parent.model.key)
         } ui { suggestions ->
             if (suggestions.isNotEmpty()) createChild(parent.model, key = suggestions[0], angle = 0.0, isSuggestion = true)
             if (suggestions.size > 1) createChild(parent.model, key = suggestions[1], angle = 120.0, isSuggestion = true)

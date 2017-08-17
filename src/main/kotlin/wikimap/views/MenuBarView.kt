@@ -1,10 +1,8 @@
 package wikimap.views
 
-import javafx.scene.control.MenuBar
 import javafx.stage.FileChooser
 import tornadofx.*
 import wikimap.models.MindMap
-import wikimap.view.MainView
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
