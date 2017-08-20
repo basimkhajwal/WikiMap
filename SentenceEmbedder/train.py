@@ -1,25 +1,27 @@
 import random
+import pickle
 
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
-from keras.layers import Input, Embedding, Conv1D, MaxPooling1D, Flatten, Dense
+from keras.layers import Input, Embedding, Conv1D, MaxPooling1D, Dropout, Flatten, Dense
 from keras.models import Model, save_model, load_model
 
 import numpy as np
 
 from util import *
 
+
 embedding_dim = 50
 max_sequence_length = 250
 
-np.random.seed(0)
 
 all_data = read_csv("Reformatted.csv")
 
 text = [row[0] for row in all_data]
 category_names = [row[1] for row in all_data]
 
-t = build_tokeniser(text)
+with open("tokenizer.bin", "rb") as reader:
+    t = pickle.load(reader)
 
 word_index = t.word_index
 
@@ -74,44 +76,47 @@ def build_model():
     embedding_layer = Embedding(len(word_index) + 1,
                                 embedding_dim,
                                 weights=[embedding_matrix],
-                                input_length=max_sequence_length)
+                                input_length=max_sequence_length,
+                                trainable=False)
 
     input_tensor = Input(shape=(max_sequence_length,), dtype="int32")
 
     embedded_sequences = embedding_layer(input_tensor)
-    x = Conv1D(128, 5, activation='relu')(embedded_sequences)
-    x = MaxPooling1D(5)(x)
-    x = Conv1D(128, 5, activation='relu')(x)
-    x = MaxPooling1D(5)(x)
-    x = Flatten()(x)
-    x = Dense(128, activation='relu')(x)
 
-    preds = Dense(labels.shape[1], activation="softmax")(x)
+    x = Conv1D(128, 5, activation='relu')(embedded_sequences)
+    x = MaxPooling1D()(x)
+    x = Dropout(0.1)(x)
+
+    x = Conv1D(128, 5, activation='relu')(x)
+    x = MaxPooling1D()(x)
+    x = Dropout(0.1)(x)
+
+    x = Flatten()(x)
+
+    features = Dense(20, activation='tanh', name="feature")(x)
+
+    preds = Dense(labels.shape[1], activation="softmax", name="predict")(features)
 
     model = Model(input_tensor, preds)
     model.compile(loss="categorical_crossentropy", optimizer="rmsprop", metrics=["acc"])
+
     return model
 
 
-def log_results(filename, model:Model, epochs, batch_size, x_val, y_val):
-    with open(filename, "a") as logger:
-        logger.write("Model summary:\n" + model.summary() + "\n")
-        logger.write("Epochs trained: " + epochs)
-        logger.write("Batch size: " + batch_size)
-        model.evaluate(x_val, y_val, verbose=False)
-
 # model = build_model()
 model = load_model("model.h5")
-model.load_weights("weights.h5")
 
-EPOCHS = 1
-BATCH_SIZE = 2000
+model.summary()
+
+# test_input_sentence(model)
+
+EPOCHS = 2
+BATCH_SIZE = 1000
 
 model.fit(x_train, y_train, validation_data=(x_val, y_val),
-          epochs=EPOCHS, batch_size=BATCH_SIZE)
+        epochs=EPOCHS, batch_size=BATCH_SIZE)
 
 save_model(model, "model.h5")
-model.save_weights("weights.h5")
 
-# log_results("results_log.txt", model, epochs=EPOCHS, batch_size=BATCH_SIZE, x_val=x_val, y_val=y_val)
+log_results("results_log.txt", model, epochs=EPOCHS, batch_size=BATCH_SIZE, x_val=x_val, y_val=y_val)
 
