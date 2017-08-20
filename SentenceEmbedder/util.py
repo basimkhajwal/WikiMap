@@ -1,7 +1,9 @@
 import random
 import csv
 
+from keras.models import Model
 
+from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 
 def read_csv(file_path):
@@ -38,3 +40,19 @@ def get_category_indeces(category_names):
         indexes.append(category_dict[name])
 
     return indexes
+
+def log_results(filename, model:Model, epochs, batch_size, x_val, y_val):
+    with open(filename, "a") as logger:
+        logger.write("Model summary:\n")
+        logger.write(str(model.to_json()) + "\n")
+        logger.write("Epochs trained: " + str(epochs) + "\n")
+        logger.write("Batch size: " + str(batch_size) + "\n")
+        score = model.evaluate(x_val, y_val, verbose=False)
+
+        logger.write("Validation score:" + str(score) + "\n")
+
+def test_input_sentence(tokenizer, model, max_sequence_length):
+    sen = input("Enter test sentence: ")
+    sequence = tokenizer.texts_to_sequences([sen])
+    padded = pad_sequences(sequence, maxlen=max_sequence_length)
+    print(model.predict(padded))
