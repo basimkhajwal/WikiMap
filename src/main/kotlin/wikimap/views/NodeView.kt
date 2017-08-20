@@ -1,4 +1,4 @@
-package wikimap.view
+package wikimap.views
 
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
@@ -6,7 +6,6 @@ import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.*
-import javafx.scene.input.MouseEvent
 import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
@@ -15,24 +14,23 @@ import javafx.scene.text.TextAlignment
 import wikimap.models.MindMapNode
 import tornadofx.*
 import wikimap.utils.DragResizeMod
+import wikimap.views.ChangeEvent
 
 class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boolean = false): StackPane() {
 
     val onChange = ChangeEvent()
-    val keyText = SimpleStringProperty(model.key)
 
     private val isSelectedProperty = SimpleBooleanProperty(false)
     var isSelected by isSelectedProperty
 
     val rect: Rectangle =
-            Rectangle(main.gridSpacing * model.width.toDouble(),
-                    main.gridSpacing * model.height.toDouble()).apply {
-                arcWidth = main.gridSpacing.toDouble()
-                arcHeight = main.gridSpacing.toDouble()
-                fill = Color(Math.random(), Math.random(), Math.random(), 0.7)
-            }
+        Rectangle(0.0, 0.0).apply {
+            arcWidth = main.gridView.spacing.toDouble()
+            arcHeight = main.gridView.spacing.toDouble()
+            fill = Color(Math.random(), Math.random(), Math.random(), 0.7)
+        }
 
-    val label: Label = Label(model.key).apply {
+    val label = Label(model.key).apply {
         style {
             textFill = Color.WHITE
             fontWeight = FontWeight.BOLD
@@ -40,47 +38,51 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
             textAlignment = TextAlignment.CENTER
             wrapText = true
         }
-        textProperty().bind(keyText)
+        textProperty().bind(model.keyProperty)
     }
 
-    val textArea: TextArea = TextArea(model.key).apply {
+    val textArea = TextArea(model.key).apply {
         style {
             textFill = Color.WHITE
             fontWeight = FontWeight.BOLD
             wrapText = true
             backgroundColor = multi(Color.TRANSPARENT)
         }
+        textProperty().bindBidirectional(model.keyProperty)
         paddingTop = 10
         paddingBottom = 10
-
-        textProperty().bindBidirectional(keyText)
         isVisible = false
     }
 
-    val selectedBorder = Border(BorderStroke(
-            Color.BLUE, BorderStrokeStyle.SOLID,
-            CornerRadii.EMPTY, BorderWidths(1.0)
+    private val selectedBorder = Border(BorderStroke(
+        Color.BLUE, BorderStrokeStyle.SOLID,
+        CornerRadii.EMPTY, BorderWidths(1.0)
     ))
 
     private val resizeListener = object : DragResizeMod.OnDragResizeEventListener {
         override fun onResize(n: Node?, x: Double, y: Double, h: Double, w: Double) {
             val (nx, ny) = main.gridView.toGridCoords(x, y)
+            val cx = Math.round(nx).toInt()
+            val cy = Math.round(ny).toInt()
 
             if (nx != model.x.toDouble()) {
-                val cx = Math.round(nx).toInt()
                 model.width = (model.x + model.width) - cx
-                model.x = cx
             } else {
-                model.width = Math.round(w / main.gridSpacing).toInt()
+                model.width = Math.round(w / main.gridView.spacing).toInt()
             }
 
             if (ny != model.y.toDouble()) {
-                val cy = Math.round(ny).toInt()
                 model.height = (model.y + model.height) - cy
-                model.y = cy
             } else {
-                model.height = Math.round(h / main.gridSpacing).toInt()
+                model.height = Math.round(h / main.gridView.spacing).toInt()
             }
+
+            model.x = cx
+            model.y = cy
+
+            model.width = maxOf(3, model.width)
+            model.height = maxOf(3, model.height)
+
             refresh()
         }
 
@@ -99,10 +101,10 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
         val totalOffsetY = model.y - suggestionParent.model.y
 
         val offsetX = totalOffsetX +
-                if (totalOffsetX < 0) model.width else -suggestionParent.model.width
+            if (totalOffsetX < 0) model.width else -suggestionParent.model.width
 
         val offsetY = totalOffsetY +
-                if (totalOffsetY < 0) model.height else -suggestionParent.model.height
+            if (totalOffsetY < 0) model.height else -suggestionParent.model.height
 
         rect.fill = Color(0.0, 0.0, 0.0, 0.2)
 
@@ -135,17 +137,12 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
         this += label
         this += textArea
 
-        isSelectedProperty.onChange {
-            if (isSelected) {
-                border = selectedBorder
-            } else {
-                border = Border.EMPTY
-            }
-        }
 
-        keyText.onChange {
-            if (it != null) model.key = it
-        }
+        borderProperty().bind(
+            isSelectedProperty.objectBinding {
+                if (it ?: false) selectedBorder else Border.EMPTY
+            }
+        )
 
         textArea.focusedProperty().onChange {
             if (!it) hideTextArea()
@@ -172,8 +169,8 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
 
     private fun refresh() {
         val (x, y) = main.gridView.fromGridCoords(model.x.toDouble(), model.y.toDouble())
-        rect.width = model.width.toDouble() * main.gridSpacing
-        rect.height = model.height.toDouble() * main.gridSpacing
+        rect.width = model.width.toDouble() * main.gridView.spacing
+        rect.height = model.height.toDouble() * main.gridView.spacing
         relocate(x, y)
         setPrefSize(rect.width, rect.height)
 
@@ -192,16 +189,9 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
 
         val scrollPane = textArea.childrenUnmodifiable[0] as ScrollPane
         scrollPane.vbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-
         for (child in getAllChildren(textArea)) {
-            child.style {
-                backgroundColor = multi(Color(0.0,0.0,0.0,0.05))
-                alignment = Pos.CENTER
-                textAlignment = TextAlignment.CENTER
-            }
-
-            // Prevent blurry text
-            child.isCache = false
+            child.style { backgroundColor = multi(Color(0.0,0.0,0.0,0.05)) }
+            child.isCache = false // Prevent blurry text
         }
 
         textArea.requestFocus()

@@ -1,4 +1,4 @@
-package wikimap.view
+package wikimap.views
 
 /**
  * Created by Basim on 03/08/2017.

@@ -1,6 +1,6 @@
 package wikimap.app
 
-import wikimap.view.MainView
 import tornadofx.App
+import wikimap.views.MainView
 
 class MyApp: App(MainView::class)

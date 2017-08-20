@@ -1,6 +1,4 @@
-package wikimap.utils
-
-import wikimap.app.SuggestionProvider
+package wikimap.suggestion
 
 /**
  * Created by Basim on 07/08/2017.
