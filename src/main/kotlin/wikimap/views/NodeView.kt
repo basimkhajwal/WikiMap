@@ -52,6 +52,7 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
         paddingTop = 10
         paddingBottom = 10
         isVisible = false
+        promptText = "Enter text here"
     }
 
     private val selectedBorder = Border(BorderStroke(
@@ -200,5 +201,6 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
     private fun hideTextArea() {
         label.isVisible = true
         textArea.isVisible = false
+        if (model.key == "") model.key = "..."
     }
 }
