@@ -1,5 +1,6 @@
 package wikimap.views
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.scene.control.SplitPane
@@ -47,6 +48,10 @@ class MainView : View("WikiMap") {
 
     private var clickX = 0.0
     private var clickY = 0.0
+
+    private var mousePointerX = 0.0
+    private var mousePointerY = 0.0
+
     private var oldCenter = Pair(0.0, 0.0)
 
     private val rectangleSelect = Rectangle().apply {
@@ -70,6 +75,36 @@ class MainView : View("WikiMap") {
         splitPane.dividers.forEach { it.positionProperty().onChange { refresh() } }
 
         nodePane += rectangleSelect
+
+        mindMapView.onKeyTyped = EventHandler { event ->
+
+            if (event.character == " " && selectedNodes.size == 1) {
+                val selectedNode = selectedNodes.first().model
+                val (mouseX, mouseY) = gridView.toGridCoords(mousePointerX, mousePointerY)
+
+                val newNode = MindMapNode("...", mouseX.toInt() - 3, mouseY.toInt() - 2, 6, 4)
+                createChild(selectedNode, newNode, false)
+            }
+
+            if (event.character == "x") {
+
+                val removeNodes = selectedNodes.filter { isLeaf(it.model) && !isRoot(it.model) }
+
+                nodeConnections
+                    .filter { removeNodes.contains(it.parent) || removeNodes.contains(it.child) }
+                    .forEach { it.removeFromParent() }
+
+                removeNodes.forEach {
+                    it.removeFromParent()
+                    removeSuggestions(it)
+                }
+                nodes.removeAll(removeNodes)
+
+                selectedNodes.forEach { it.isSelected = false }
+                selectedNodes.clear()
+                refresh()
+            }
+        }
 
         mindMapView.onMousePressed = EventHandler { event ->
             clickX = event.x
@@ -110,6 +145,11 @@ class MainView : View("WikiMap") {
                         rectangleSelect.contains(node.layoutX + node.width, node.layoutY + node.height)
                 }.toTypedArray())
             }
+        }
+
+        mindMapView.onMouseMoved = EventHandler { event ->
+            mousePointerX = event.x
+            mousePointerY = event.y
         }
 
         mindMapView.isFocusTraversable = true
@@ -216,9 +256,11 @@ class MainView : View("WikiMap") {
         return nodeView
     }
 
-    private fun findNode(model: MindMapNode): NodeView? {
-        return nodes.find { it.model == model }
-    }
+    private fun isLeaf(model: MindMapNode): Boolean = model.children.isEmpty()
+
+    private fun isRoot(model: MindMapNode): Boolean = nodes.all { !it.model.children.contains(model) }
+
+    private fun findNode(model: MindMapNode): NodeView? = nodes.find { it.model == model }
 
     private fun createChild(parent: MindMapNode, childModel: MindMapNode, isSuggestion: Boolean): NodeView {
         val parentNode = findNode(parent)!!
