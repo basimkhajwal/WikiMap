@@ -94,9 +94,10 @@ class MainView : View("WikiMap") {
                     .filter { removeNodes.contains(it.parent) || removeNodes.contains(it.child) }
                     .forEach { it.removeFromParent() }
 
-                removeNodes.forEach {
-                    it.removeFromParent()
-                    removeSuggestions(it)
+                removeNodes.forEach { node ->
+                    node.removeFromParent()
+                    removeSuggestions(node)
+                    nodes.forEach { it.model.children.remove(node.model) }
                 }
                 nodes.removeAll(removeNodes)
 
