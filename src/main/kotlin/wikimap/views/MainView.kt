@@ -203,6 +203,11 @@ class MainView : View("WikiMap") {
         }
     }
 
+    fun addSuggestionToSelection(suggestion: String) {
+        assert(selectedNodes.size == 1)
+        createChild(selectedNodes.first().model, key = suggestion)
+    }
+
     fun showSuggestions(parent: NodeView) {
         runAsync {
             suggestionProvider.getSuggestions(parent.model.key)

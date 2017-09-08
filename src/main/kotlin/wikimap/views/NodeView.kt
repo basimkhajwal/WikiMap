@@ -9,6 +9,7 @@ import javafx.scene.control.*
 import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
+import javafx.scene.text.Font
 import javafx.scene.text.FontWeight
 import javafx.scene.text.TextAlignment
 import wikimap.models.MindMapNode
@@ -32,13 +33,14 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
 
     val label = Label(model.key).apply {
         style {
-            textFillProperty().bind(model.textColourProperty)
             fontWeight = FontWeight.BOLD
             alignment = Pos.CENTER
             textAlignment = TextAlignment.CENTER
             wrapText = true
         }
         textProperty().bind(model.keyProperty)
+        textFillProperty().bind(model.textColourProperty)
+        fontProperty().bind( objectBinding(model.fontSizeProperty) { Font(value.toDouble()) }  )
     }
 
     val textArea = TextArea(model.key).apply {

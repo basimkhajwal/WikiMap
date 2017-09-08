@@ -9,7 +9,8 @@ class MindMapNode(
     children: MutableList<MindMapNode> = mutableListOf(),
     isSuggestion: Boolean = false,
     backgroundColour: Color = Color(Math.random(), Math.random(), Math.random(), 0.7),
-    textColour: Color = Color.WHITE
+    textColour: Color = Color.WHITE,
+    fontSize: Int = 12
 ) {
 
     val keyProperty = SimpleStringProperty(key)
@@ -29,6 +30,9 @@ class MindMapNode(
 
     val textColourProperty = SimpleObjectProperty<Color>(textColour)
     var textColour by textColourProperty
+
+    val fontSizeProperty = SimpleIntegerProperty(fontSize)
+    var fontSize by fontSizeProperty
 
     val backgroundColourProperty = SimpleObjectProperty<Color>(backgroundColour)
     var backgroundColour by backgroundColourProperty

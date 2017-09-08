@@ -2,6 +2,7 @@ package wikimap.views
 
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.ObjectProperty
+import javafx.scene.control.Label
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.scene.text.TextAlignment
@@ -32,28 +33,36 @@ class NodeEditView : View() {
             fieldset("Node Properties") {
                 field("X") { this += NumericTextField().multiFieldEdit { it.xProperty } }
                 field("Y") { this += NumericTextField().multiFieldEdit { it.yProperty } }
-                field("W") { this += NumericTextField().multiFieldEdit { it.widthProperty } }
-                field("H") { this += NumericTextField().multiFieldEdit { it.heightProperty } }
+                field("Width") { this += NumericTextField().multiFieldEdit { it.widthProperty } }
+                field("Height") { this += NumericTextField().multiFieldEdit { it.heightProperty } }
             }
 
-            fieldset("Background Colour") {
+            fieldset("Background") {
                 hbox(5) {
-                    field("R") { this += colourEdit({ it.red }, { c, x -> Color(x, c.green, c.blue, c.opacity)}, { it.backgroundColourProperty }) }
-                    field("G") { this += colourEdit({ it.green }, { c, x -> Color(c.red, x, c.blue, c.opacity)}, { it.backgroundColourProperty }) }
-                    field("B") { this += colourEdit({ it.blue }, { c, x -> Color(c.red, c.green, x, c.opacity)}, { it.backgroundColourProperty }) }
+                    field("Red") { this += colourEdit({ it.red }, { c, x -> Color(x, c.green, c.blue, c.opacity)}, { it.backgroundColourProperty }) }
+                    field("Green") { this += colourEdit({ it.green }, { c, x -> Color(c.red, x, c.blue, c.opacity)}, { it.backgroundColourProperty }) }
+                    field("Blue") { this += colourEdit({ it.blue }, { c, x -> Color(c.red, c.green, x, c.opacity)}, { it.backgroundColourProperty }) }
                 }
             }
 
-            fieldset("Text Colour") {
+            fieldset("Text") {
                 hbox(5) {
-                    field("R") { this += colourEdit({ it.red }, { c, x -> Color(x, c.green, c.blue, c.opacity)}, { it.textColourProperty }) }
-                    field("G") { this += colourEdit({ it.green }, { c, x -> Color(c.red, x, c.blue, c.opacity)}, { it.textColourProperty }) }
-                    field("B") { this += colourEdit({ it.blue }, { c, x -> Color(c.red, c.green, x, c.opacity)}, { it.textColourProperty }) }
+                    field("Red") { this += colourEdit({ it.red }, { c, x -> Color(x, c.green, c.blue, c.opacity)}, { it.textColourProperty }) }
+                    field("Green") { this += colourEdit({ it.green }, { c, x -> Color(c.red, x, c.blue, c.opacity)}, { it.textColourProperty }) }
+                    field("Blue") { this += colourEdit({ it.blue }, { c, x -> Color(c.red, c.green, x, c.opacity)}, { it.textColourProperty }) }
                 }
+                field("Size") { this += NumericTextField { it >= 0 } .multiFieldEdit { it.fontSizeProperty }}
             }
 
             fieldset("Node Suggestions") {
-                listview(suggestionsList)
+                listview(suggestionsList) {
+                    cellFormat { suggestion ->
+                        graphic = Label(suggestion)
+                        onDoubleClick {
+                            main.addSuggestionToSelection(suggestion)
+                        }
+                    }
+                }
             }
         }
     }
