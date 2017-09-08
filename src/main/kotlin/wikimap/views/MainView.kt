@@ -89,10 +89,12 @@ class MainView : View("WikiMap") {
             if (event.character == "x") {
 
                 val removeNodes = selectedNodes.filter { isLeaf(it.model) && !isRoot(it.model) }
+                selectNodes()
 
                 nodeConnections
                     .filter { removeNodes.contains(it.parent) || removeNodes.contains(it.child) }
                     .forEach { it.removeFromParent() }
+
 
                 removeNodes.forEach { node ->
                     node.removeFromParent()
@@ -101,8 +103,6 @@ class MainView : View("WikiMap") {
                 }
                 nodes.removeAll(removeNodes)
 
-                selectedNodes.forEach { it.isSelected = false }
-                selectedNodes.clear()
                 refresh()
             }
         }

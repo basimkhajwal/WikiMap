@@ -4,7 +4,7 @@ package wikimap.views
  * Created by Basim on 03/08/2017.
  */
 class ChangeEvent {
-    private val listeners = mutableSetOf< () -> Unit >()
+    private val listeners = mutableListOf< () -> Unit >()
 
     operator fun plusAssign(listener: () -> Unit) {
         listeners += listener

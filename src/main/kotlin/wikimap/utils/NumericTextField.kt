@@ -13,7 +13,7 @@ class NumericTextField(private val pred: (Int) -> Boolean = { true }) : TextFiel
     val valueProperty = SimpleIntegerProperty()
     var value by valueProperty
 
-    private var inSync = false
+    var inSync = false
 
     init {
 

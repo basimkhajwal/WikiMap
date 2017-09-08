@@ -76,11 +76,6 @@ class NodeEditView : View() {
         return multiFieldEdit({ field(it).value }, { node, x -> field(node).value = x })
     }
 
-    /**
-     *  TODO
-     *  - FIX EMPTY ITEMS ERROR!
-     */
-
     private fun NumericTextField.multiFieldEdit(fieldGet: (MindMapNode) -> Int, fieldSet: (MindMapNode, Int) -> Unit): NumericTextField {
 
         fun update() {
@@ -93,16 +88,23 @@ class NodeEditView : View() {
                 isDisable = false
 
                 if (items.sameBy { fieldGet(it.model) }) {
+                    inSync = false
                     value = fieldGet(items.first().model)
                 } else {
                     clear()
                 }
             }
-
-            items.forEach { it.onChange += ::update }
         }
 
-        items.onChange { update() }
+        items.onChange {
+            while (it.next()) {
+                if (it.wasAdded()) it.addedSubList.forEach { it.onChange += ::update }
+                if (it.wasRemoved()) it.removed.forEach { it.onChange -= ::update }
+            }
+            update()
+        }
+
+        main.onChange += ::update
 
         valueProperty.onChange {
             if (!isDisable) {
