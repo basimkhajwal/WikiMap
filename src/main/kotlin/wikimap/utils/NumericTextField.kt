@@ -8,7 +8,7 @@ import tornadofx.*
 /**
  * Created by Basim on 07/08/2017.
  */
-class NumericTextField : TextField(""){
+class NumericTextField(private val pred: (Int) -> Boolean = { true }) : TextField(""){
 
     val valueProperty = SimpleIntegerProperty()
     var value by valueProperty
@@ -37,6 +37,6 @@ class NumericTextField : TextField(""){
     }
 
     private fun isValid(str: String): Boolean {
-        return str.isEmpty() || str.toIntOrNull() != null
+        return str.isEmpty() || (str.toIntOrNull() != null && pred(str.toInt()))
     }
 }
