@@ -1,9 +1,12 @@
 package wikimap.views
 
 import javafx.beans.property.IntegerProperty
+import javafx.beans.property.ObjectProperty
 import javafx.scene.layout.Priority
+import javafx.scene.paint.Color
 import javafx.scene.text.TextAlignment
 import tornadofx.*
+import wikimap.models.MindMapNode
 import wikimap.utils.NumericTextField
 
 /**
@@ -27,10 +30,26 @@ class NodeEditView : View() {
 
         content = form {
             fieldset("Node Properties") {
-                field("X") { this += NumericTextField().multiFieldEdit { it.model.xProperty } }
-                field("Y") { this += NumericTextField().multiFieldEdit { it.model.yProperty } }
-                field("Width") { this += NumericTextField().multiFieldEdit { it.model.widthProperty } }
-                field("Height") { this += NumericTextField().multiFieldEdit { it.model.heightProperty } }
+                field("X") { this += NumericTextField().multiFieldEdit { it.xProperty } }
+                field("Y") { this += NumericTextField().multiFieldEdit { it.yProperty } }
+                field("W") { this += NumericTextField().multiFieldEdit { it.widthProperty } }
+                field("H") { this += NumericTextField().multiFieldEdit { it.heightProperty } }
+            }
+
+            fieldset("Background Colour") {
+                hbox(5) {
+                    field("R") { this += colourEdit({ it.red }, { c, x -> Color(x, c.green, c.blue, c.opacity)}, { it.backgroundColourProperty }) }
+                    field("G") { this += colourEdit({ it.green }, { c, x -> Color(c.red, x, c.blue, c.opacity)}, { it.backgroundColourProperty }) }
+                    field("B") { this += colourEdit({ it.blue }, { c, x -> Color(c.red, c.green, x, c.opacity)}, { it.backgroundColourProperty }) }
+                }
+            }
+
+            fieldset("Text Colour") {
+                hbox(5) {
+                    field("R") { this += colourEdit({ it.red }, { c, x -> Color(x, c.green, c.blue, c.opacity)}, { it.textColourProperty }) }
+                    field("G") { this += colourEdit({ it.green }, { c, x -> Color(c.red, x, c.blue, c.opacity)}, { it.textColourProperty }) }
+                    field("B") { this += colourEdit({ it.blue }, { c, x -> Color(c.red, c.green, x, c.opacity)}, { it.textColourProperty }) }
+                }
             }
 
             fieldset("Node Suggestions") {
@@ -44,9 +63,25 @@ class NodeEditView : View() {
         refresh()
     }
 
-    private fun <T, V> List<T>.sameBy(p: (T) -> V): Boolean = distinctBy(p).size == 1
+    private fun <T, V> List<T>.sameBy(p: (T) -> V): Boolean = distinctBy(p).size <= 1
 
-    private fun NumericTextField.multiFieldEdit(field: (NodeView) -> IntegerProperty): NumericTextField {
+    private fun colourEdit(c: (Color) -> Double, d: (Color, Double) -> Color, f: (MindMapNode) -> ObjectProperty<Color>): NumericTextField {
+
+        val textField = NumericTextField { it in 0..255 }
+
+        return textField.multiFieldEdit({ (c(f(it).value) * 256).toInt() }, { node, x -> f(node).value = d(f(node).value, x / 256.0) })
+    }
+
+    private fun NumericTextField.multiFieldEdit(field: (MindMapNode) -> IntegerProperty): NumericTextField {
+        return multiFieldEdit({ field(it).value }, { node, x -> field(node).value = x })
+    }
+
+    /**
+     *  TODO
+     *  - FIX EMPTY ITEMS ERROR!
+     */
+
+    private fun NumericTextField.multiFieldEdit(fieldGet: (MindMapNode) -> Int, fieldSet: (MindMapNode, Int) -> Unit): NumericTextField {
 
         fun update() {
 
@@ -57,8 +92,8 @@ class NodeEditView : View() {
             } else {
                 isDisable = false
 
-                if (items.sameBy { field(it).value }) {
-                    value = field(items.first()).value
+                if (items.sameBy { fieldGet(it.model) }) {
+                    value = fieldGet(items.first().model)
                 } else {
                     clear()
                 }
@@ -71,7 +106,7 @@ class NodeEditView : View() {
 
         valueProperty.onChange {
             if (!isDisable) {
-                items.forEach { field(it).value = value }
+                items.forEach { fieldSet(it.model, value) }
                 main.refresh()
             }
         }

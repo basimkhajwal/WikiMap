@@ -1,12 +1,15 @@
 package wikimap.models
 
 import javafx.beans.property.*
+import javafx.scene.paint.Color
 import tornadofx.*
 
 class MindMapNode(
     key: String, x: Int, y: Int, width: Int, height: Int,
     children: MutableList<MindMapNode> = mutableListOf(),
-    isSuggestion: Boolean = false
+    isSuggestion: Boolean = false,
+    backgroundColour: Color = Color(Math.random(), Math.random(), Math.random(), 0.7),
+    textColour: Color = Color.WHITE
 ) {
 
     val keyProperty = SimpleStringProperty(key)
@@ -23,6 +26,12 @@ class MindMapNode(
 
     val heightProperty = SimpleIntegerProperty(height)
     var height by heightProperty
+
+    val textColourProperty = SimpleObjectProperty<Color>(textColour)
+    var textColour by textColourProperty
+
+    val backgroundColourProperty = SimpleObjectProperty<Color>(backgroundColour)
+    var backgroundColour by backgroundColourProperty
 
     val suggestionProperty = SimpleBooleanProperty(isSuggestion)
     var isSuggestion by suggestionProperty

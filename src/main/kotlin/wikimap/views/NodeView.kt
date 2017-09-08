@@ -27,12 +27,12 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
         Rectangle(0.0, 0.0).apply {
             arcWidth = main.gridView.spacing.toDouble()
             arcHeight = main.gridView.spacing.toDouble()
-            fill = Color(Math.random(), Math.random(), Math.random(), 0.7)
+            fillProperty().bind(model.backgroundColourProperty)
         }
 
     val label = Label(model.key).apply {
         style {
-            textFill = Color.WHITE
+            textFillProperty().bind(model.textColourProperty)
             fontWeight = FontWeight.BOLD
             alignment = Pos.CENTER
             textAlignment = TextAlignment.CENTER
@@ -107,13 +107,13 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
         val offsetY = totalOffsetY +
             if (totalOffsetY < 0) model.height else -suggestionParent.model.height
 
-        rect.fill = Color(0.0, 0.0, 0.0, 0.2)
+        model.backgroundColour = Color(0.0, 0.0, 0.0, 0.2)
 
         onHover {
             if (it) {
-                rect.fill = Color(0.2, 0.2, 0.2, 0.2)
+                model.backgroundColour = Color(0.2, 0.2, 0.2, 0.2)
             } else {
-                rect.fill = Color(0.0, 0.0, 0.0, 0.2)
+                model.backgroundColour = Color(0.0, 0.0, 0.0, 0.2)
             }
         }
 
