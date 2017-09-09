@@ -147,8 +147,10 @@ class NodeEditView : View() {
             runAsync {
                 main.suggestionProvider.getSuggestions(key)
             } ui {
-                suggestionsList.clear()
-                suggestionsList.addAll(it)
+                if (items.isNotEmpty() && items.first().model.key == oldKey) {
+                    suggestionsList.clear()
+                    suggestionsList.addAll(it)
+                }
             }
 
         }
