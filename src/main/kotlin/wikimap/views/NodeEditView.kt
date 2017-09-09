@@ -98,8 +98,10 @@ class NodeEditView : View() {
 
                 if (items.sameBy { fieldGet(it.model) }) {
                     inSync = false
+                    //println("SETTING VALUE to ${fieldGet(items.first().model)}")
                     value = fieldGet(items.first().model)
                 } else {
+                    inSync = true
                     clear()
                 }
             }
@@ -117,6 +119,11 @@ class NodeEditView : View() {
 
         valueProperty.onChange {
             if (!isDisable) {
+                /*
+                println("SETTING ALL TO $value")
+                if (value == 0) {
+                    println("ZERO")
+                }*/
                 items.forEach { fieldSet(it.model, value) }
                 main.refresh()
             }

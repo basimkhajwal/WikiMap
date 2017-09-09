@@ -212,9 +212,13 @@ class MainView : View("WikiMap") {
         runAsync {
             suggestionProvider.getSuggestions(parent.model.key)
         } ui { suggestions ->
-            if (suggestions.isNotEmpty()) createChild(parent.model, key = suggestions[0], angle = 0.0, isSuggestion = true)
-            if (suggestions.size > 1) createChild(parent.model, key = suggestions[1], angle = 120.0, isSuggestion = true)
-            if (suggestions.size > 2) createChild(parent.model, key = suggestions[2], angle = 240.0, isSuggestion = true)
+
+            // Make sure node still exists and is selected
+            if (nodes.contains(parent) && selectedNodes.contains(parent)) {
+                if (suggestions.isNotEmpty()) createChild(parent.model, key = suggestions[0], angle = 0.0, isSuggestion = true)
+                if (suggestions.size > 1) createChild(parent.model, key = suggestions[1], angle = 120.0, isSuggestion = true)
+                if (suggestions.size > 2) createChild(parent.model, key = suggestions[2], angle = 240.0, isSuggestion = true)
+            }
         }
 
     }
