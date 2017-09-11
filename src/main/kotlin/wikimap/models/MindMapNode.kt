@@ -7,7 +7,6 @@ import tornadofx.*
 class MindMapNode(
     key: String, x: Int, y: Int, width: Int, height: Int,
     children: MutableList<MindMapNode> = mutableListOf(),
-    isSuggestion: Boolean = false,
     backgroundColour: Color = Color(Math.random(), Math.random(), Math.random(), 0.7),
     textColour: Color = Color.WHITE,
     fontSize: Int = 12
@@ -36,15 +35,6 @@ class MindMapNode(
 
     val backgroundColourProperty = SimpleObjectProperty<Color>(backgroundColour)
     var backgroundColour by backgroundColourProperty
-
-    val suggestionProperty = SimpleBooleanProperty(isSuggestion)
-    var isSuggestion by suggestionProperty
-
-    val selectedProperty = SimpleBooleanProperty(false)
-    var isSelected by selectedProperty
-
-    val editingProperty = SimpleBooleanProperty(false)
-    var isEditing by editingProperty
 
     val children = children.observable()
 
