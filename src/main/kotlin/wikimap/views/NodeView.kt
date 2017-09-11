@@ -91,8 +91,19 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
 
         override fun onDrag(n: Node?, x: Double, y: Double, h: Double, w: Double) {
             val (nx, ny) = main.gridView.toGridCoords(x, y)
+            val oldX = model.x
+            val oldY = model.y
             model.x = Math.round(nx).toInt()
             model.y = Math.round(ny).toInt()
+            if (isSelected) {
+                for (other in main.selectedNodes) {
+                    if (other != this@NodeView) {
+                        other.model.x += model.x - oldX
+                        other.model.y += model.y - oldY
+                        other.refresh()
+                    }
+                }
+            }
             refresh()
         }
     }
@@ -139,7 +150,6 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
         this += rect
         this += label
         this += textArea
-
 
         borderProperty().bind(
             isSelectedProperty.objectBinding {
