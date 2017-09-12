@@ -19,4 +19,13 @@ object UserSettings {
             .map { prefs.get(fileNum(it), "") }
             .filter { it.isNotEmpty() }
     }
+
+    fun updateRecentFile(file: String) {
+        val currentFiles = getRecentFiles().toMutableList()
+        currentFiles.remove(file)
+        currentFiles.add(0, file)
+
+        prefs.putInt(FILE_LEN, currentFiles.size)
+        for ((i, file) in currentFiles.withIndex()) prefs.put(fileNum(i), file)
+    }
 }

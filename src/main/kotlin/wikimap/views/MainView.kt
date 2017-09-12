@@ -1,6 +1,5 @@
 package wikimap.views
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.scene.control.SplitPane
@@ -12,6 +11,7 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
+import javafx.util.Duration
 import tornadofx.*
 import wikimap.models.MindMap
 import wikimap.models.MindMapNode
@@ -154,11 +154,18 @@ class MainView : View("WikiMap") {
         }
 
         mindMapView.isFocusTraversable = true
+        loadModel(mindMap)
+    }
 
+    override fun onDock() {
+        super.onDock()
+
+        currentStage?.isResizable = true
         currentWindow?.widthProperty()?.onChange { refresh() }
         currentWindow?.heightProperty()?.onChange { refresh() }
 
-        loadModel(mindMap)
+        refresh()
+        runLater(Duration(200.0)) { refresh() } // dirty fix
     }
 
     fun loadModel(model: MindMap) {

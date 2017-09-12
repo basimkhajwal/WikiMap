@@ -3,6 +3,7 @@ package wikimap.views
 import javafx.stage.FileChooser
 import tornadofx.*
 import wikimap.models.MindMap
+import wikimap.utils.UserSettings
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -41,15 +42,21 @@ class MenuBarView : View() {
         }
     }
 
+    fun setFile(path: String) {
+        file = File(path)
+    }
+
     private fun loadFromFile() {
         val fileContents = String(Files.readAllBytes(file!!.toPath()))
         val model = MindMap.deserialize(fileContents)
 
+        UserSettings.updateRecentFile(file!!.absolutePath)
         main.loadModel(model)
     }
 
     private fun saveToFile() {
         val fileData = main.mindMap.serialize().toByteArray()
+        UserSettings.updateRecentFile(file!!.absolutePath)
         Files.write(file!!.toPath(), fileData, StandardOpenOption.CREATE_NEW)
     }
 }
