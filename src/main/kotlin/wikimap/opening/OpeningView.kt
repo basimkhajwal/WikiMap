@@ -133,7 +133,7 @@ class OpeningView : View("WikiMap") {
                                 .toString(Charset.defaultCharset())
                         )
                         find(MainView::class).loadModel(model)
-                        find(MenuBarView::class).setFile(fileName)
+                        find(MenuBarView::class).file = File(filePath)
                         replaceWith(MainView::class)
                     }
                 }

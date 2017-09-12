@@ -74,6 +74,12 @@ class MainView : View("WikiMap") {
         splitPane.addEventFilter(KeyEvent.ANY, keyboardHandler)
         splitPane.dividers.forEach { it.positionProperty().onChange { refresh() } }
 
+        titleProperty.bind(
+            menuBarView.fileProperty.stringBinding {
+                if (it == null) "WikiMap - Untitled" else "WikiMap - ${it.absolutePath}"
+            }
+        )
+
         nodePane += rectangleSelect
 
         mindMapView.onKeyTyped = EventHandler { event ->
