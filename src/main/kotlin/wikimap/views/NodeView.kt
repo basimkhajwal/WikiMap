@@ -62,19 +62,21 @@ class NodeView(val main: MainView, val model: MindMapNode, val isSuggestion: Boo
         CornerRadii.EMPTY, BorderWidths(1.0)
     ))
 
+    private fun epsilonEq(a: Double, b: Double, epsilon: Double = 1e-5) = a > b-epsilon && a < b+epsilon
+
     private val resizeListener = object : DragResizeMod.OnDragResizeEventListener {
         override fun onResize(n: Node?, x: Double, y: Double, h: Double, w: Double) {
             val (nx, ny) = main.gridView.toGridCoords(x, y)
             val cx = Math.round(nx).toInt()
             val cy = Math.round(ny).toInt()
 
-            if (nx != model.x.toDouble()) {
+            if (!epsilonEq(nx, model.x.toDouble())) {
                 model.width = (model.x + model.width) - cx
             } else {
                 model.width = Math.round(w / main.gridView.spacing).toInt()
             }
 
-            if (ny != model.y.toDouble()) {
+            if (!epsilonEq(ny, model.y.toDouble())) {
                 model.height = (model.y + model.height) - cy
             } else {
                 model.height = Math.round(h / main.gridView.spacing).toInt()

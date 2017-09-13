@@ -117,10 +117,10 @@ class MainView : View("WikiMap") {
             clickX = event.x
             clickY = event.y
 
-            if (event.button == MouseButton.SECONDARY) {
+            selectNodes()
+            if (event.button != MouseButton.SECONDARY) {
                 oldCenter = gridView.gridCenter
             } else {
-                selectNodes()
                 mindMapView.requestFocus()
                 rectangleSelect.x = event.x
                 rectangleSelect.y = event.y
@@ -129,7 +129,7 @@ class MainView : View("WikiMap") {
         }
 
         mindMapView.onMouseDragged = EventHandler { event ->
-            if (event.button == MouseButton.SECONDARY) {
+            if (event.button != MouseButton.SECONDARY) {
                 val dx = (event.x - clickX) / gridView.root.width
                 val dy = (event.y - clickY) / gridView.root.height
                 gridView.gridCenter = Pair(oldCenter.first + dx, oldCenter.second + dy)
@@ -157,6 +157,12 @@ class MainView : View("WikiMap") {
         mindMapView.onMouseMoved = EventHandler { event ->
             mousePointerX = event.x
             mousePointerY = event.y
+        }
+
+        mindMapView.onScroll = EventHandler { event ->
+            gridView.spacing = (gridView.spacing * (1 + event.deltaY / 100.0)).toInt()
+            gridView.spacing = maxOf(15, minOf(60, gridView.spacing))
+            refresh()
         }
 
         mindMapView.isFocusTraversable = true
